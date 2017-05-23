@@ -10,7 +10,7 @@ pub const DEFAULT_MAX_INTERVAL_MILLIS: u64 = 60000;
 pub const DEFAULT_MAX_ELAPSED_TIME_MILLIS: u64 = 900000;
 
 /* */
-struct ExponentialBackOff {
+pub struct ExponentialBackOff {
     current_interval: Duration,
     initial_interval: Duration,
     randomization_factor: f64,
