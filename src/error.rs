@@ -1,14 +1,13 @@
 use std::fmt;
 use std::error;
 
-pub enum Error<P, T> {
-    Permanent(P),
-    Transient(T),
+pub enum Error<E> {
+    Permanent(E),
+    Transient(E),
 }
 
-impl<P, T> fmt::Display for Error<P, T>
-    where P: fmt::Display,
-          T: fmt::Display
+impl<E> fmt::Display for Error<E>
+    where E: fmt::Display
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
@@ -18,9 +17,8 @@ impl<P, T> fmt::Display for Error<P, T>
     }
 }
 
-impl<P, T> fmt::Debug for Error<P, T>
-    where P: fmt::Debug,
-          T: fmt::Debug
+impl<E> fmt::Debug for Error<E>
+    where E: fmt::Debug
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let (name, err) = match *self {
@@ -31,9 +29,8 @@ impl<P, T> fmt::Debug for Error<P, T>
     }
 }
 
-impl<P, T> error::Error for Error<P, T>
-    where P: error::Error,
-          T: error::Error
+impl<E> error::Error for Error<E>
+    where E: error::Error
 {
     fn description(&self) -> &str {
         match *self {
