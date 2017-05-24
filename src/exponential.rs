@@ -40,7 +40,7 @@ impl Default for ExponentialBackOff {
 }
 
 impl ExponentialBackOff {
-    pub fn get_elapsed_time(&self) -> Duration {
+    pub fn get_elapsed_time(&mut self) -> Duration {
         self.clock.now().duration_since(self.start_time)
     }
 
@@ -48,29 +48,50 @@ impl ExponentialBackOff {
                                       random: f64,
                                       current_interval: Duration)
                                       -> Duration {
-        let current_interval_millis = (current_interval.as_secs() * 1000_u64 +
-                                       (current_interval.subsec_nanos() as u64 / 1000_0000)) as
-                                      f64;
+        let current_interval_nanos = duration_to_nanos(current_interval);
 
-        let delta = randomization_factor * current_interval_millis;
-        let min_interval = current_interval_millis - delta;
-        let max_interval = current_interval_millis + delta;
+        let delta = randomization_factor * current_interval_nanos;
+        let min_interval = current_interval_nanos - delta;
+        let max_interval = current_interval_nanos + delta;
         // Get a random value from the range [minInterval, maxInterval].
         // The formula used below has a +1 because if the minInterval is 1 and the maxInterval is 3 then
         // we want a 33% chance for selecting either 1, 2 or 3.
-        let millis = (min_interval + (random * (max_interval - min_interval + 1.0))) as u64;
-        Duration::from_millis(millis)
+        let diff = max_interval - min_interval;
+        let nanos = min_interval + (random * (diff + 1.0));
+        nanos_to_duration(nanos)
+    }
+
+    fn increment_current_interval(&mut self) {
+        let current_interval_nanos = duration_to_nanos(self.current_interval);
+        let max_interval_nanos = duration_to_nanos(self.max_interval);
+        // Check for overflow, if overflow is detected set the current interval to the max interval.
+        self.current_interval = if current_interval_nanos >= max_interval_nanos / self.multiplier {
+            self.max_interval
+        } else {
+            let nanos = current_interval_nanos * self.multiplier;
+            nanos_to_duration(nanos)
+        }
     }
 }
 
-trait Clock {
-    fn now(&self) -> Instant;
+fn duration_to_nanos(d: Duration) -> f64 {
+    d.as_secs() as f64 * 1000_000_000.0 + d.subsec_nanos() as f64
+}
+
+fn nanos_to_duration(nanos: f64) -> Duration {
+    let secs = nanos / 1000_000_000.0;
+    let nanos = nanos as u64 % 1000_000_000;
+    Duration::new(secs as u64, nanos as u32)
+}
+
+pub trait Clock {
+    fn now(&mut self) -> Instant;
 }
 
 struct SystemClock {}
 
 impl Clock for SystemClock {
-    fn now(&self) -> Instant {
+    fn now(&mut self) -> Instant {
         Instant::now()
     }
 }
@@ -92,7 +113,22 @@ impl BackOff for ExponentialBackOff {
                 Self::get_random_value_from_interval(self.randomization_factor,
                                                      random,
                                                      self.current_interval);
+            self.increment_current_interval();
             Some(randomized_interval)
         }
     }
+}
+
+#[test]
+fn get_randomized_interval() {
+    // 33% chance of being 1.
+    let f = ExponentialBackOff::get_random_value_from_interval;
+    assert_eq!(Duration::new(0, 1), f(0.5, 0.0, Duration::new(0, 2)));
+    assert_eq!(Duration::new(0, 1), f(0.5, 0.33, Duration::new(0, 2)));
+    // 33% chance of being 2.
+    assert_eq!(Duration::new(0, 2), f(0.5, 0.34, Duration::new(0, 2)));
+    assert_eq!(Duration::new(0, 2), f(0.5, 0.66, Duration::new(0, 2)));
+    // 33% chance of being 3.
+    assert_eq!(Duration::new(0, 3), f(0.5, 0.67, Duration::new(0, 2)));
+    assert_eq!(Duration::new(0, 3), f(0.5, 0.99, Duration::new(0, 2)));
 }
