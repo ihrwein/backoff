@@ -11,15 +11,14 @@ pub const DEFAULT_MAX_ELAPSED_TIME_MILLIS: u64 = 900000;
 
 /* */
 pub struct ExponentialBackOff {
-    current_interval: Duration,
-    initial_interval: Duration,
-    randomization_factor: f64,
-    multiplier: f64,
-    max_interval: Duration,
-    max_elapsed_time: Duration,
-    clock: Box<Clock>,
-
-    start_time: Instant,
+    pub current_interval: Duration,
+    pub initial_interval: Duration,
+    pub randomization_factor: f64,
+    pub multiplier: f64,
+    pub max_interval: Duration,
+    pub max_elapsed_time: Option<Duration>,
+    pub clock: Box<Clock>,
+    pub start_time: Instant,
 }
 
 impl Default for ExponentialBackOff {
@@ -30,7 +29,7 @@ impl Default for ExponentialBackOff {
             randomization_factor: DEFAULT_RANDOMIZATION_FACTOR,
             multiplier: DEFAULT_MULTIPLIER,
             max_interval: Duration::from_millis(DEFAULT_MAX_INTERVAL_MILLIS),
-            max_elapsed_time: Duration::from_millis(DEFAULT_MAX_ELAPSED_TIME_MILLIS),
+            max_elapsed_time: Some(Duration::from_millis(DEFAULT_MAX_ELAPSED_TIME_MILLIS)),
             clock: Box::new(SystemClock {}),
             start_time: Instant::now(),
         };
@@ -40,7 +39,7 @@ impl Default for ExponentialBackOff {
 }
 
 impl ExponentialBackOff {
-    pub fn get_elapsed_time(&mut self) -> Duration {
+    pub fn get_elapsed_time(&self) -> Duration {
         self.clock.now().duration_since(self.start_time)
     }
 
@@ -61,11 +60,11 @@ impl ExponentialBackOff {
         nanos_to_duration(nanos)
     }
 
-    fn increment_current_interval(&mut self) {
+    fn increment_current_interval(&mut self) -> Duration {
         let current_interval_nanos = duration_to_nanos(self.current_interval);
         let max_interval_nanos = duration_to_nanos(self.max_interval);
         // Check for overflow, if overflow is detected set the current interval to the max interval.
-        self.current_interval = if current_interval_nanos >= max_interval_nanos / self.multiplier {
+        if current_interval_nanos >= max_interval_nanos / self.multiplier {
             self.max_interval
         } else {
             let nanos = current_interval_nanos * self.multiplier;
@@ -85,13 +84,13 @@ fn nanos_to_duration(nanos: f64) -> Duration {
 }
 
 pub trait Clock {
-    fn now(&mut self) -> Instant;
+    fn now(&self) -> Instant;
 }
 
 struct SystemClock {}
 
 impl Clock for SystemClock {
-    fn now(&mut self) -> Instant {
+    fn now(&self) -> Instant {
         Instant::now()
     }
 }
@@ -105,16 +104,17 @@ impl BackOff for ExponentialBackOff {
     }
 
     fn next_back_off(&mut self) -> Option<Duration> {
-        if self.get_elapsed_time() > self.max_elapsed_time {
-            None
-        } else {
-            let random = rand::random::<f64>();
-            let randomized_interval =
-                Self::get_random_value_from_interval(self.randomization_factor,
-                                                     random,
-                                                     self.current_interval);
-            self.increment_current_interval();
-            Some(randomized_interval)
+        match self.max_elapsed_time {
+            Some(v) if self.get_elapsed_time() > v => None,
+            _ => {
+                let random = rand::random::<f64>();
+                let randomized_interval =
+                    Self::get_random_value_from_interval(self.randomization_factor,
+                                                        random,
+                                                        self.current_interval);
+                self.current_interval = self.increment_current_interval();
+                Some(randomized_interval)
+            }
         }
     }
 }
