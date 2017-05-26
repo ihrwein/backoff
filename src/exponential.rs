@@ -3,11 +3,7 @@ use std::time::Instant;
 
 use rand;
 
-pub const DEFAULT_INITIAL_INTERVAL_MILLIS: u64 = 500;
-pub const DEFAULT_RANDOMIZATION_FACTOR: f64 = 0.5;
-pub const DEFAULT_MULTIPLIER: f64 = 1.5;
-pub const DEFAULT_MAX_INTERVAL_MILLIS: u64 = 60000;
-pub const DEFAULT_MAX_ELAPSED_TIME_MILLIS: u64 = 900000;
+use  default;
 
 /* */
 pub struct ExponentialBackOff<C> {
@@ -24,12 +20,12 @@ pub struct ExponentialBackOff<C> {
 impl<C> Default for ExponentialBackOff<C> where C: Clock + Default {
     fn default() -> ExponentialBackOff<C> {
         let mut eb = ExponentialBackOff {
-            current_interval: Duration::from_millis(DEFAULT_INITIAL_INTERVAL_MILLIS),
-            initial_interval: Duration::from_millis(DEFAULT_INITIAL_INTERVAL_MILLIS),
-            randomization_factor: DEFAULT_RANDOMIZATION_FACTOR,
-            multiplier: DEFAULT_MULTIPLIER,
-            max_interval: Duration::from_millis(DEFAULT_MAX_INTERVAL_MILLIS),
-            max_elapsed_time: Some(Duration::from_millis(DEFAULT_MAX_ELAPSED_TIME_MILLIS)),
+            current_interval: Duration::from_millis(default::INITIAL_INTERVAL_MILLIS),
+            initial_interval: Duration::from_millis(default::INITIAL_INTERVAL_MILLIS),
+            randomization_factor: default::RANDOMIZATION_FACTOR,
+            multiplier: default::MULTIPLIER,
+            max_interval: Duration::from_millis(default::MAX_INTERVAL_MILLIS),
+            max_elapsed_time: Some(Duration::from_millis(default::MAX_ELAPSED_TIME_MILLIS)),
             clock: C::default(),
             start_time: Instant::now(),
         };
