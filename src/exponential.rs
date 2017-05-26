@@ -3,7 +3,10 @@ use std::time::Instant;
 
 use rand;
 
-use  default;
+use default;
+use backoff::BackOff;
+use clock::Clock;
+
 
 /* */
 pub struct ExponentialBackOff<C> {
@@ -79,26 +82,6 @@ fn nanos_to_duration(nanos: f64) -> Duration {
     Duration::new(secs as u64, nanos as u32)
 }
 
-pub trait Clock {
-    fn now(&self) -> Instant;
-}
-
-pub struct SystemClock {}
-
-impl Clock for SystemClock {
-    fn now(&self) -> Instant {
-        Instant::now()
-    }
-}
-
-impl Default for SystemClock {
-    fn default() -> Self {
-        SystemClock{}
-    }
-}
-
-use backoff::BackOff;
-
 impl<C> BackOff for ExponentialBackOff<C> where C: Clock {
     fn reset(&mut self) {
         self.current_interval = self.initial_interval;
@@ -120,6 +103,10 @@ impl<C> BackOff for ExponentialBackOff<C> where C: Clock {
         }
     }
 }
+
+
+#[cfg(test)]
+use clock::SystemClock;
 
 #[test]
 fn get_randomized_interval() {

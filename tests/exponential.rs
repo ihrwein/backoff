@@ -1,7 +1,7 @@
 extern crate backoff;
 
-use backoff::exponential::{ExponentialBackOff, Clock};
-use backoff::SystemClock;
+use backoff::exponential::ExponentialBackOff;
+use backoff::{Clock, SystemClock};
 use backoff::backoff::BackOff;
 
 use std::cell::RefCell;

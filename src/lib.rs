@@ -5,7 +5,7 @@ pub mod retry;
 pub mod backoff;
 pub mod exponential;
 pub mod default;
+mod clock;
 
-pub type ExponentialBackOff = exponential::ExponentialBackOff<exponential::SystemClock>;
-pub use exponential::Clock;
-pub use exponential::SystemClock;
+pub type ExponentialBackOff = exponential::ExponentialBackOff<SystemClock>;
+pub use clock::{Clock, SystemClock};
