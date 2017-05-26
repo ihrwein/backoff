@@ -10,19 +10,19 @@ pub const DEFAULT_MAX_INTERVAL_MILLIS: u64 = 60000;
 pub const DEFAULT_MAX_ELAPSED_TIME_MILLIS: u64 = 900000;
 
 /* */
-pub struct ExponentialBackOff {
+pub struct ExponentialBackOff<C> {
     pub current_interval: Duration,
     pub initial_interval: Duration,
     pub randomization_factor: f64,
     pub multiplier: f64,
     pub max_interval: Duration,
     pub max_elapsed_time: Option<Duration>,
-    pub clock: Box<Clock>,
+    pub clock: C,
     pub start_time: Instant,
 }
 
-impl Default for ExponentialBackOff {
-    fn default() -> ExponentialBackOff {
+impl<C> Default for ExponentialBackOff<C> where C: Clock + Default {
+    fn default() -> ExponentialBackOff<C> {
         let mut eb = ExponentialBackOff {
             current_interval: Duration::from_millis(DEFAULT_INITIAL_INTERVAL_MILLIS),
             initial_interval: Duration::from_millis(DEFAULT_INITIAL_INTERVAL_MILLIS),
@@ -30,7 +30,7 @@ impl Default for ExponentialBackOff {
             multiplier: DEFAULT_MULTIPLIER,
             max_interval: Duration::from_millis(DEFAULT_MAX_INTERVAL_MILLIS),
             max_elapsed_time: Some(Duration::from_millis(DEFAULT_MAX_ELAPSED_TIME_MILLIS)),
-            clock: Box::new(SystemClock {}),
+            clock: C::default(),
             start_time: Instant::now(),
         };
         eb.reset();
@@ -38,7 +38,7 @@ impl Default for ExponentialBackOff {
     }
 }
 
-impl ExponentialBackOff {
+impl<C: Clock> ExponentialBackOff<C> {
     pub fn get_elapsed_time(&self) -> Duration {
         self.clock.now().duration_since(self.start_time)
     }
@@ -87,7 +87,7 @@ pub trait Clock {
     fn now(&self) -> Instant;
 }
 
-struct SystemClock {}
+pub struct SystemClock {}
 
 impl Clock for SystemClock {
     fn now(&self) -> Instant {
@@ -95,9 +95,15 @@ impl Clock for SystemClock {
     }
 }
 
+impl Default for SystemClock {
+    fn default() -> Self {
+        SystemClock{}
+    }
+}
+
 use backoff::BackOff;
 
-impl BackOff for ExponentialBackOff {
+impl<C> BackOff for ExponentialBackOff<C> where C: Clock {
     fn reset(&mut self) {
         self.current_interval = self.initial_interval;
         self.start_time = self.clock.now();
@@ -122,7 +128,7 @@ impl BackOff for ExponentialBackOff {
 #[test]
 fn get_randomized_interval() {
     // 33% chance of being 1.
-    let f = ExponentialBackOff::get_random_value_from_interval;
+    let f = ExponentialBackOff::<SystemClock>::get_random_value_from_interval;
     assert_eq!(Duration::new(0, 1), f(0.5, 0.0, Duration::new(0, 2)));
     assert_eq!(Duration::new(0, 1), f(0.5, 0.33, Duration::new(0, 2)));
     // 33% chance of being 2.

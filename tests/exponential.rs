@@ -1,6 +1,7 @@
 extern crate backoff;
 
 use backoff::exponential::{ExponentialBackOff, Clock};
+use backoff::SystemClock;
 use backoff::backoff::BackOff;
 
 use std::cell::RefCell;
@@ -28,10 +29,16 @@ impl Clock for TestClock {
     }
 }
 
+impl Default for TestClock {
+	fn default() -> Self {
+		TestClock::new(Duration::from_secs(1), Instant::now())
+	}
+}
+
 #[test]
 fn get_elapsed_time() {
 	let mut exp = ExponentialBackOff::default();
-	exp.clock = Box::new(TestClock::new(Duration::new(0,0), Instant::now()));
+	exp.clock = TestClock::new(Duration::new(0,0), Instant::now());
 	exp.reset();
 
 	let elapsed_time = exp.get_elapsed_time();
@@ -41,7 +48,7 @@ fn get_elapsed_time() {
 #[test]
 fn max_elapsed_time() {
 	let mut exp = ExponentialBackOff::default();
-	exp.clock = Box::new(TestClock::new(Duration::new(0,0), Instant::now()));
+	exp.clock = TestClock::new(Duration::new(0,0), Instant::now());
 	// Change the currentElapsedTime to be 0 ensuring that the elapsed time will be greater
 	// than the max elapsed time.
 	exp.start_time = Instant::now() - Duration::new(1000, 0);
@@ -50,7 +57,7 @@ fn max_elapsed_time() {
 
 #[test]
 fn backoff() {
-	let mut exp = ExponentialBackOff::default();
+	let mut exp = ExponentialBackOff::<SystemClock>::default();
 	exp.initial_interval = Duration::from_millis(500);
 	exp.randomization_factor = 0.1;
 	exp.multiplier = 2.0;

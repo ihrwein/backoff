@@ -1,6 +1,6 @@
 extern crate backoff;
 
-use backoff::exponential::ExponentialBackOff;
+use backoff::ExponentialBackOff;
 use backoff::retry::Operation;
 use backoff::error::Error;
 
