@@ -1,7 +1,7 @@
 extern crate backoff;
 
 use backoff::ExponentialBackOff;
-use backoff::retry::Operation;
+use backoff::Operation;
 use backoff::error::Error;
 
 use std::io;
