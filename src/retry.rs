@@ -51,6 +51,22 @@ impl<T, E, F> Operation<T, E> for F
     }
 }
 
+/// ```rust
+/// # use backoff::{simple_op, ExponentialBackOff, Operation};
+/// use std::io::{Error, ErrorKind};
+/// let mut i = 0;
+/// let op = || {
+///     i += 1;
+///     if i < 2 {
+///         Err(Error::new(ErrorKind::Other, "err"))
+///     } else {
+///         Ok(())
+///     }
+/// };
+/// let mut op = simple_op(op);
+/// let mut bo = ExponentialBackOff::default();
+/// op.retry(&mut bo);
+/// ```
 pub fn simple_op<F>(f: F) -> SimpleOperation<F> {
     SimpleOperation {f : f} 
 }
