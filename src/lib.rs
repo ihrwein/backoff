@@ -9,6 +9,6 @@ mod clock;
 
 pub use error::Error;
 pub use clock::{Clock, SystemClock};
-pub use retry::{Notify, Operation};
+pub use retry::{Notify, Operation, simple_op, SimpleOperation};
 
 pub type ExponentialBackOff = exponential::ExponentialBackOff<SystemClock>;

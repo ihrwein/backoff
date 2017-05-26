@@ -51,6 +51,22 @@ impl<T, E, F> Operation<T, E> for F
     }
 }
 
+pub fn simple_op<F>(f: F) -> SimpleOperation<F> {
+    SimpleOperation {f : f} 
+}
+
+pub struct SimpleOperation<F> {
+    f: F
+}
+
+impl<T, E, F> Operation<T, E> for SimpleOperation<F>
+    where F: FnMut() -> Result<T, E>
+{
+    fn call_op(&mut self) -> Result<T, Error<E>> {
+       (self.f)().map_err(Error::Transient)
+    }
+}
+
 pub trait Notify<E> {
     fn notify(&mut self, err: E, duration: Duration);
 }
