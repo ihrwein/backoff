@@ -1,12 +1,13 @@
 extern crate rand;
 
-pub mod error;
+mod error;
 mod retry;
 pub mod backoff;
 pub mod exponential;
 pub mod default;
 mod clock;
 
+pub use error::Error;
 pub use clock::{Clock, SystemClock};
 pub use retry::{Notify, Operation};
 

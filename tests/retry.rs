@@ -2,7 +2,7 @@ extern crate backoff;
 
 use backoff::ExponentialBackOff;
 use backoff::Operation;
-use backoff::error::Error;
+use backoff::Error;
 
 use std::io;
 
