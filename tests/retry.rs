@@ -21,8 +21,8 @@ fn retry() {
             return Err(Error::Transient(io::Error::new(io::ErrorKind::Other, "err")));
         };
     
-        let backoff = ExponentialBackOff::default();
-        let _ = f.retry(backoff).ok().unwrap();
+        let mut backoff = ExponentialBackOff::default();
+        let _ = f.retry(&mut backoff).ok().unwrap();
     }
 
     assert_eq!(i, success_on);
@@ -34,8 +34,8 @@ fn permanent_error_immediately_returned() {
         Err(Error::Permanent(io::Error::new(io::ErrorKind::Other, "err")))
     };
 
-    let backoff = ExponentialBackOff::default();
-    match f.retry(backoff).err().unwrap(){
+    let mut backoff = ExponentialBackOff::default();
+    match f.retry(&mut backoff).err().unwrap(){
         Error::Permanent(_) => (),
         other => panic!("{}", other),
     }

@@ -7,14 +7,14 @@ use backoff::BackOff;
 pub trait Operation<T, E> {
     fn call_op(&mut self) -> Result<T, Error<E>>;
 
-    fn retry<B>(&mut self, backoff: B) -> Result<T, Error<E>>
+    fn retry<B>(&mut self, backoff: &mut B) -> Result<T, Error<E>>
         where B: BackOff
     {
         let nop = |_, _| ();
         self.retry_notify(backoff, nop)
     }
 
-    fn retry_notify<B, N>(&mut self, mut backoff: B, mut notify: N) -> Result<T, Error<E>>
+    fn retry_notify<B, N>(&mut self, backoff: &mut B, mut notify: N) -> Result<T, Error<E>>
         where N: Notify<E>,
               B: BackOff
     {
