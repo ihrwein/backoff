@@ -1,8 +1,17 @@
 use std::fmt;
 use std::error;
 
+/// Error is the error value in an operation's
+/// result.
+///
+/// Based on the two possible values, the operation
+/// may be retried.
 pub enum Error<E> {
+    /// Permanent means that it's impossible to execute the operation
+    /// successfully. This error is immediately returned from `retry()`.
     Permanent(E),
+    /// Transient means that the error is temporary, the operation should
+    /// be retried according to the backoff policy.
     Transient(E),
 }
 

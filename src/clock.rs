@@ -1,9 +1,12 @@
 use std::time::Instant;
 
+/// Clock returns the current time.
 pub trait Clock {
     fn now(&self) -> Instant;
 }
 
+/// SystemClock uses the system's clock to get the current time.
+/// This Clock should be used for real use-cases.
 pub struct SystemClock {}
 
 impl Clock for SystemClock {
@@ -14,7 +17,6 @@ impl Clock for SystemClock {
 
 impl Default for SystemClock {
     fn default() -> Self {
-        SystemClock{}
+        SystemClock {}
     }
 }
-

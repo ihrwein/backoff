@@ -7,8 +7,6 @@ use default;
 use backoff::Backoff;
 use clock::Clock;
 
-
-/* */
 pub struct ExponentialBackoff<C> {
     pub current_interval: Duration,
     pub initial_interval: Duration,
@@ -20,7 +18,9 @@ pub struct ExponentialBackoff<C> {
     pub start_time: Instant,
 }
 
-impl<C> Default for ExponentialBackoff<C> where C: Clock + Default {
+impl<C> Default for ExponentialBackoff<C>
+    where C: Clock + Default
+{
     fn default() -> ExponentialBackoff<C> {
         let mut eb = ExponentialBackoff {
             current_interval: Duration::from_millis(default::INITIAL_INTERVAL_MILLIS),
@@ -38,6 +38,7 @@ impl<C> Default for ExponentialBackoff<C> where C: Clock + Default {
 }
 
 impl<C: Clock> ExponentialBackoff<C> {
+    /// Returns the elapsed time since start_time.
     pub fn get_elapsed_time(&self) -> Duration {
         self.clock.now().duration_since(self.start_time)
     }
@@ -82,7 +83,9 @@ fn nanos_to_duration(nanos: f64) -> Duration {
     Duration::new(secs as u64, nanos as u32)
 }
 
-impl<C> Backoff for ExponentialBackoff<C> where C: Clock {
+impl<C> Backoff for ExponentialBackoff<C>
+    where C: Clock
+{
     fn reset(&mut self) {
         self.current_interval = self.initial_interval;
         self.start_time = self.clock.now();
@@ -95,8 +98,8 @@ impl<C> Backoff for ExponentialBackoff<C> where C: Clock {
                 let random = rand::random::<f64>();
                 let randomized_interval =
                     Self::get_random_value_from_interval(self.randomization_factor,
-                                                        random,
-                                                        self.current_interval);
+                                                         random,
+                                                         self.current_interval);
                 self.current_interval = self.increment_current_interval();
                 Some(randomized_interval)
             }
