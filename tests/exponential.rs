@@ -52,7 +52,7 @@ fn max_elapsed_time() {
 	// Change the currentElapsedTime to be 0 ensuring that the elapsed time will be greater
 	// than the max elapsed time.
 	exp.start_time = Instant::now() - Duration::new(1000, 0);
-    assert!(exp.next_back_off().is_none());
+    assert!(exp.next_backoff().is_none());
 }
 
 #[test]
@@ -70,6 +70,6 @@ fn backoff() {
 
 	for i in expected_results {
 		assert_eq!(i, exp.current_interval);
-		exp.next_back_off();
+		exp.next_backoff();
 	}
 }

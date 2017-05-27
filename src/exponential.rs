@@ -88,7 +88,7 @@ impl<C> Backoff for ExponentialBackoff<C> where C: Clock {
         self.start_time = self.clock.now();
     }
 
-    fn next_back_off(&mut self) -> Option<Duration> {
+    fn next_backoff(&mut self) -> Option<Duration> {
         match self.max_elapsed_time {
             Some(v) if self.get_elapsed_time() > v => None,
             _ => {

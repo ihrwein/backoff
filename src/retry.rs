@@ -31,7 +31,7 @@ pub trait Operation<T, E> {
                 Error::Transient(err) => err,
             };
 
-            let next = match backoff.next_back_off() {
+            let next = match backoff.next_backoff() {
                 Some(next) => next,
                 None => return Err(Error::Transient(err)),
             };
