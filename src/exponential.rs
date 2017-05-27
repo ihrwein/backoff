@@ -4,12 +4,12 @@ use std::time::Instant;
 use rand;
 
 use default;
-use backoff::BackOff;
+use backoff::Backoff;
 use clock::Clock;
 
 
 /* */
-pub struct ExponentialBackOff<C> {
+pub struct ExponentialBackoff<C> {
     pub current_interval: Duration,
     pub initial_interval: Duration,
     pub randomization_factor: f64,
@@ -20,9 +20,9 @@ pub struct ExponentialBackOff<C> {
     pub start_time: Instant,
 }
 
-impl<C> Default for ExponentialBackOff<C> where C: Clock + Default {
-    fn default() -> ExponentialBackOff<C> {
-        let mut eb = ExponentialBackOff {
+impl<C> Default for ExponentialBackoff<C> where C: Clock + Default {
+    fn default() -> ExponentialBackoff<C> {
+        let mut eb = ExponentialBackoff {
             current_interval: Duration::from_millis(default::INITIAL_INTERVAL_MILLIS),
             initial_interval: Duration::from_millis(default::INITIAL_INTERVAL_MILLIS),
             randomization_factor: default::RANDOMIZATION_FACTOR,
@@ -37,7 +37,7 @@ impl<C> Default for ExponentialBackOff<C> where C: Clock + Default {
     }
 }
 
-impl<C: Clock> ExponentialBackOff<C> {
+impl<C: Clock> ExponentialBackoff<C> {
     pub fn get_elapsed_time(&self) -> Duration {
         self.clock.now().duration_since(self.start_time)
     }
@@ -82,7 +82,7 @@ fn nanos_to_duration(nanos: f64) -> Duration {
     Duration::new(secs as u64, nanos as u32)
 }
 
-impl<C> BackOff for ExponentialBackOff<C> where C: Clock {
+impl<C> Backoff for ExponentialBackoff<C> where C: Clock {
     fn reset(&mut self) {
         self.current_interval = self.initial_interval;
         self.start_time = self.clock.now();
@@ -111,7 +111,7 @@ use clock::SystemClock;
 #[test]
 fn get_randomized_interval() {
     // 33% chance of being 1.
-    let f = ExponentialBackOff::<SystemClock>::get_random_value_from_interval;
+    let f = ExponentialBackoff::<SystemClock>::get_random_value_from_interval;
     assert_eq!(Duration::new(0, 1), f(0.5, 0.0, Duration::new(0, 2)));
     assert_eq!(Duration::new(0, 1), f(0.5, 0.33, Duration::new(0, 2)));
     // 33% chance of being 2.

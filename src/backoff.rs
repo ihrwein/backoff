@@ -1,13 +1,13 @@
 use std::time::Duration;
 
-pub trait BackOff {
+pub trait Backoff {
     fn reset(&mut self) {}
     fn next_back_off(&mut self) -> Option<Duration>;
 }
 
 pub struct Zero {}
 
-impl BackOff for Zero {
+impl Backoff for Zero {
     fn next_back_off(&mut self) -> Option<Duration> {
         Some(Duration::default())
     }
@@ -15,7 +15,7 @@ impl BackOff for Zero {
 
 pub struct Stop {}
 
-impl BackOff for Stop {
+impl Backoff for Stop {
     fn next_back_off(&mut self) -> Option<Duration> {
         None
     }
@@ -31,7 +31,7 @@ impl Constant {
     }
 }
 
-impl BackOff for Constant {
+impl Backoff for Constant {
     fn next_back_off(&mut self) -> Option<Duration> {
         Some(self.interval)
     }

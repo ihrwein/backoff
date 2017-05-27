@@ -11,4 +11,4 @@ pub use error::Error;
 pub use clock::{Clock, SystemClock};
 pub use retry::{Notify, Operation, simple_op, SimpleOperation};
 
-pub type ExponentialBackOff = exponential::ExponentialBackOff<SystemClock>;
+pub type ExponentialBackoff = exponential::ExponentialBackoff<SystemClock>;

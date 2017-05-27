@@ -2,13 +2,13 @@ use std::time::Duration;
 use std::thread;
 
 use error::Error;
-use backoff::BackOff;
+use backoff::Backoff;
 
 pub trait Operation<T, E> {
     fn call_op(&mut self) -> Result<T, Error<E>>;
 
     fn retry<B>(&mut self, backoff: &mut B) -> Result<T, Error<E>>
-        where B: BackOff
+        where B: Backoff
     {
         let nop = |_, _| ();
         self.retry_notify(backoff, nop)
@@ -16,7 +16,7 @@ pub trait Operation<T, E> {
 
     fn retry_notify<B, N>(&mut self, backoff: &mut B, mut notify: N) -> Result<T, Error<E>>
         where N: Notify<E>,
-              B: BackOff
+              B: Backoff
     {
         backoff.reset();
 
@@ -52,7 +52,7 @@ impl<T, E, F> Operation<T, E> for F
 }
 
 /// ```rust
-/// # use backoff::{simple_op, ExponentialBackOff, Operation};
+/// # use backoff::{simple_op, ExponentialBackoff, Operation};
 /// use std::io::{Error, ErrorKind};
 /// let mut i = 0;
 /// let op = || {
@@ -64,7 +64,7 @@ impl<T, E, F> Operation<T, E> for F
 ///     }
 /// };
 /// let mut op = simple_op(op);
-/// let mut bo = ExponentialBackOff::default();
+/// let mut bo = ExponentialBackoff::default();
 /// op.retry(&mut bo);
 /// ```
 pub fn simple_op<F>(f: F) -> SimpleOperation<F> {

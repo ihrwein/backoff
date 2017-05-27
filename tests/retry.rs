@@ -1,6 +1,6 @@
 extern crate backoff;
 
-use backoff::ExponentialBackOff;
+use backoff::ExponentialBackoff;
 use backoff::Operation;
 use backoff::Error;
 
@@ -21,7 +21,7 @@ fn retry() {
             return Err(Error::Transient(io::Error::new(io::ErrorKind::Other, "err")));
         };
     
-        let mut backoff = ExponentialBackOff::default();
+        let mut backoff = ExponentialBackoff::default();
         let _ = f.retry(&mut backoff).ok().unwrap();
     }
 
@@ -34,7 +34,7 @@ fn permanent_error_immediately_returned() {
         Err(Error::Permanent(io::Error::new(io::ErrorKind::Other, "err")))
     };
 
-    let mut backoff = ExponentialBackOff::default();
+    let mut backoff = ExponentialBackoff::default();
     match f.retry(&mut backoff).err().unwrap(){
         Error::Permanent(_) => (),
         other => panic!("{}", other),
