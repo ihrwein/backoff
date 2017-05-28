@@ -8,11 +8,13 @@ its [Golang port](https://github.com/cenkalti/backoff).
 [![Build Status](https://travis-ci.org/ihrwein/backoff.svg?branch=master)](https://travis-ci.org/ihrwein/backoff)
 [![crates.io](http://meritbadge.herokuapp.com/backoff)](https://crates.io/crates/backoff)
 
+Documentation: https://docs.rs/backoff/0.1.0/backoff/
+
 ## Usage
 
 Just wrap your fallible operation into a closure, and call `retry` on it:
 
-```
+```rust
 let mut op = || {
     println!("Fetching {}", url);
     let mut resp = reqwest::get(url)?;
@@ -20,7 +22,7 @@ let mut op = || {
 };
 
 let mut backoff = ExponentialBackoff::default();
-op.retry(&mut backoff
+op.retry(&mut backoff)
 ```
 
 ## Examples
@@ -32,7 +34,7 @@ into `Error::Permanent`. You can use `Result`'s `map_err` method.
 
 `examples/permanent_error.rs`:
 
-```
+```rust
 extern crate backoff;
 extern crate reqwest;
 
@@ -99,7 +101,7 @@ By using the ? operator or the `try!` macro, you always get transient errors.
 
 `examples/retry.rs`:
 
-```
+```rust
 extern crate backoff;
 extern crate reqwest;
 
