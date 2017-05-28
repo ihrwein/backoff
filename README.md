@@ -8,7 +8,7 @@ its [Golang port](https://github.com/cenkalti/backoff).
 [![Build Status](https://travis-ci.org/ihrwein/backoff.svg?branch=master)](https://travis-ci.org/ihrwein/backoff)
 [![crates.io](http://meritbadge.herokuapp.com/backoff)](https://crates.io/crates/backoff)
 
-Documentation: https://docs.rs/backoff/0.1.0/backoff/
+Documentation: https://docs.rs/backoff
 
 ## Usage
 
