@@ -1,0 +1,7 @@
+[package]
+name = "backoff"
+version = "0.1.0"
+authors = ["Tibor Benke <ihrwein@gmail.com>"]
+
+[dependencies]
+rand = "0.3.15"
