@@ -7,9 +7,13 @@ readme = "README.md"
 repository = "https://github.com/ihrwein/backoff"
 homepage = "https://github.com/ihrwein/backoff"
 documentation = "https://docs.rs/backoff"
+categories = ["network-programming"]
 description = """
 Retry operations with exponential backoff policy.
 """
+
+[badges]
+travis-ci = { repository = "ihrwein/backoff" }
 
 [dependencies]
 rand = "0.3.15"
