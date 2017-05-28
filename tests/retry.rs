@@ -13,16 +13,16 @@ fn retry() {
 
     {
         let mut f = || -> Result<(), Error<io::Error>> {
-            i+=1;
+            i += 1;
             if i == success_on {
                 return Ok(());
             }
-    
-            return Err(Error::Transient(io::Error::new(io::ErrorKind::Other, "err")));
+
+            Err(Error::Transient(io::Error::new(io::ErrorKind::Other, "err")))
         };
-    
+
         let mut backoff = ExponentialBackoff::default();
-        let _ = f.retry(&mut backoff).ok().unwrap();
+        f.retry(&mut backoff).ok().unwrap();
     }
 
     assert_eq!(i, success_on);
@@ -35,7 +35,7 @@ fn permanent_error_immediately_returned() {
     };
 
     let mut backoff = ExponentialBackoff::default();
-    match f.retry(&mut backoff).err().unwrap(){
+    match f.retry(&mut backoff).err().unwrap() {
         Error::Permanent(_) => (),
         other => panic!("{}", other),
     }

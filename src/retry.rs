@@ -94,7 +94,7 @@ impl<T, E, F> Operation<T, E> for F
     }
 }
 
-/// Notify is called in [retry_notify](trait.Operation.html#method.retry_notify) in case of errors.
+/// Notify is called in [`retry_notify`](trait.Operation.html#method.retry_notify) in case of errors.
 pub trait Notify<E> {
     fn notify(&mut self, err: E, duration: Duration);
 }

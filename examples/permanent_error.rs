@@ -7,6 +7,7 @@ use reqwest::IntoUrl;
 use std::fmt::Display;
 use std::io::{self, Read};
 
+#[allow(needless_pass_by_value)]
 fn new_io_err<E: Display>(err: E) -> io::Error {
     io::Error::new(io::ErrorKind::Other, err.to_string())
 }

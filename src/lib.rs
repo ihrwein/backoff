@@ -1,4 +1,4 @@
-//! ExponentialBackOff is a backoff implementation that increases the backoff
+//! `ExponentialBackoff` is a backoff implementation that increases the backoff
 //! period for each retry attempt using a randomization function that grows exponentially.
 //!
 //! [`next_backoff`]: backoff/trait.Backoff.html#tymethod.next_backoff
@@ -27,15 +27,15 @@
 //!
 //! **Note**: `max_interval` caps the `retry_interval` and not the randomized interval.
 //!
-//! If the time elapsed since an [ExponentialBackoff](type.ExponentialBackoff.html) instance is created goes past the
+//! If the time elapsed since an [`ExponentialBackoff`](type.ExponentialBackoff.html) instance is created goes past the
 //! `max_elapsed_time`, then the method [`next_backoff`] starts returning `None`.
 //!
 //! The elapsed time can be reset by calling [`reset`].
 //!
 //! Example: Given the following default arguments, for 10 tries the sequence will be,
-//! and assuming we go over the max_elapsed_time on the 10th try:
+//! and assuming we go over the `max_elapsed_time` on the 10th try:
 //!
-//!   Request # | retry_interval (seconds) |  Randomized Interval (seconds)
+//!   Request # | `retry_interval` (seconds) |  Randomized Interval (seconds)
 //!  -----------|--------------------------|--------------------------------
 //!    1        |  0.5                     | [0.25,   0.75]
 //!    2        |  0.75                    | [0.375,  1.125]

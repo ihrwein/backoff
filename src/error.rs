@@ -20,7 +20,7 @@ impl<E> fmt::Display for Error<E>
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
-            Error::Permanent(ref err) => err.fmt(f),
+            Error::Permanent(ref err) |
             Error::Transient(ref err) => err.fmt(f),
         }
     }
@@ -50,7 +50,7 @@ impl<E> error::Error for Error<E>
 
     fn cause(&self) -> Option<&error::Error> {
         match *self {
-            Error::Permanent(ref err) => err.cause(),
+            Error::Permanent(ref err) |
             Error::Transient(ref err) => err.cause(),
         }
     }

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-/// BackOff is a backoff policy for retrying an operation.
+/// `Backoff` is a backoff policy for retrying an operation.
 pub trait Backoff {
     /// Resets the internal state to the initial value.
     fn reset(&mut self) {}

@@ -5,7 +5,7 @@ pub trait Clock {
     fn now(&self) -> Instant;
 }
 
-/// SystemClock uses the system's clock to get the current time.
+/// `SystemClock` uses the system's clock to get the current time.
 /// This Clock should be used for real use-cases.
 pub struct SystemClock {}
 
