@@ -35,18 +35,18 @@
 //! Example: Given the following default arguments, for 10 tries the sequence will be,
 //! and assuming we go over the max_elapsed_time on the 10th try:
 //!
-//!   Request # | retry_interval (seconds) |  Randomized Interval (seconds) 
+//!   Request # | retry_interval (seconds) |  Randomized Interval (seconds)
 //!  -----------|--------------------------|--------------------------------
-//!    1        |  0.5                     | [0.25,   0.75]                 
-//!    2        |  0.75                    | [0.375,  1.125]                
-//!    3        |  1.125                   | [0.562,  1.687]                
-//!    4        |  1.687                   | [0.8435, 2.53]                 
-//!    5        |  2.53                    | [1.265,  3.795]                
-//!    6        |  3.795                   | [1.897,  5.692]                
-//!    7        |  5.692                   | [2.846,  8.538]                
-//!    8        |  8.538                   | [4.269, 12.807]                
-//!    9        | 12.807                   | [6.403, 19.210]                
-//!   10        | 19.210                   | None                           
+//!    1        |  0.5                     | [0.25,   0.75]
+//!    2        |  0.75                    | [0.375,  1.125]
+//!    3        |  1.125                   | [0.562,  1.687]
+//!    4        |  1.687                   | [0.8435, 2.53]
+//!    5        |  2.53                    | [1.265,  3.795]
+//!    6        |  3.795                   | [1.897,  5.692]
+//!    7        |  5.692                   | [2.846,  8.538]
+//!    8        |  8.538                   | [4.269, 12.807]
+//!    9        | 12.807                   | [6.403, 19.210]
+//!   10        | 19.210                   | None
 //!
 extern crate rand;
 
@@ -59,7 +59,7 @@ mod clock;
 
 pub use error::Error;
 pub use clock::{Clock, SystemClock};
-pub use retry::{Notify, Operation, simple_op, SimpleOperation};
+pub use retry::{Notify, Operation};
 
 /// Exponential backoff policy with system's clock.
 ///

@@ -55,3 +55,12 @@ impl<E> error::Error for Error<E>
         }
     }
 }
+
+/// By default all errors are transient. Permanent errors can
+// be constructed explicitly. This implementation is for making
+// the question mark operator (?) and the `try!` macro to work.
+impl<E> From<E> for Error<E> {
+    fn from(err: E) -> Error<E> {
+        Error::Transient(err)
+    }
+}

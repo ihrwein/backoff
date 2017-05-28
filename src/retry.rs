@@ -27,7 +27,7 @@ pub trait Operation<T, E> {
     ///     // Give up.
     ///     Err(Error::Permanent("error"))
     /// };
-    /// 
+    ///
     /// let mut backoff = ExponentialBackoff::default();
     /// let _ = f.retry(&mut backoff).err().unwrap();
     /// ```
@@ -53,7 +53,7 @@ pub trait Operation<T, E> {
     ///     // Business logic...
     ///     Err(Error::Transient("error"))
     /// };
-    /// 
+    ///
     /// let mut backoff = Stop{};
     /// let _ = f.retry_notify(&mut backoff, notify).err().unwrap();
     /// ```
@@ -91,44 +91,6 @@ impl<T, E, F> Operation<T, E> for F
 {
     fn call_op(&mut self) -> Result<T, Error<E>> {
         self()
-    }
-}
-
-/// [`Operation`]: trait.Operation.html#tymethod.next_backoff
-/// Converts an `FnMut() -> Result<T, E>` into an [Operation](trait.Operation.html).
-///
-/// # Example
-///
-/// ```rust
-/// # use backoff::{simple_op, ExponentialBackoff, Operation};
-/// use std::io::{Error, ErrorKind};
-/// let mut i = 0;
-/// let op = || {
-///     i += 1;
-///     if i < 2 {
-///         Err(Error::new(ErrorKind::Other, "err"))
-///     } else {
-///         Ok(())
-///     }
-/// };
-/// let mut op = simple_op(op);
-/// let mut bo = ExponentialBackoff::default();
-/// op.retry(&mut bo);
-/// ```
-pub fn simple_op<F>(f: F) -> SimpleOperation<F> {
-    SimpleOperation { f: f }
-}
-
-/// Converts an `FnMut() -> Result<T, E>` into an [Operation](trait.Operation.html).
-pub struct SimpleOperation<F> {
-    f: F,
-}
-
-impl<T, E, F> Operation<T, E> for SimpleOperation<F>
-    where F: FnMut() -> Result<T, E>
-{
-    fn call_op(&mut self) -> Result<T, Error<E>> {
-        (self.f)().map_err(Error::Transient)
     }
 }
 
