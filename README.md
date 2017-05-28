@@ -5,6 +5,9 @@ Exponential backoff and retry.
 Inspired by the retry mechanism in Google's [google-http-java-client](https://github.com/google/google-http-java-client) library and
 its [Golang port](https://github.com/cenkalti/backoff).
 
+[![Build Status](https://travis-ci.org/ihrwein/backoff.svg?branch=master)](https://travis-ci.org/ihrwein/backoff)
+[![crates.io](http://meritbadge.herokuapp.com/backoff)](https://crates.io/crates/backoff)
+
 ## Usage
 
 Just wrap your fallible operation into a closure, and call `retry` on it:
