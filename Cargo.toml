@@ -5,3 +5,6 @@ authors = ["Tibor Benke <ihrwein@gmail.com>"]
 
 [dependencies]
 rand = "0.3.15"
+
+[dev-dependencies]
+reqwest = "0.6"
