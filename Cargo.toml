@@ -2,6 +2,14 @@
 name = "backoff"
 version = "0.1.0"
 authors = ["Tibor Benke <ihrwein@gmail.com>"]
+license = "MIT/Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/ihrwein/backoff"
+homepage = "https://github.com/ihrwein/backoff"
+documentation = "https://docs.rs/backoff"
+description = """
+Retry operations with exponential backoff policy.
+"""
 
 [dependencies]
 rand = "0.3.15"
