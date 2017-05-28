@@ -8,14 +8,28 @@ use backoff::Backoff;
 use clock::Clock;
 
 pub struct ExponentialBackoff<C> {
+    /// The current retry interval.
     pub current_interval: Duration,
+    ///  The initial retry interval.
     pub initial_interval: Duration,
+    /// The randomization factor to use for creating a range around the retry interval.
+    ///
+    /// A randomization factor of 0.5 results in a random period ranging between 50% below and 50%
+    /// above the retry interval.
     pub randomization_factor: f64,
+    /// The value to multiply the current interval with for each retry attempt.
     pub multiplier: f64,
+    /// The maximum value of the back off period. Once the retry interval reaches this
+    /// value it stops increasing.
     pub max_interval: Duration,
-    pub max_elapsed_time: Option<Duration>,
-    pub clock: C,
+    /// The system time. It is calculated when an [`ExponentialBackoff`](struct.ExponentialBackoff.html) instance is
+    /// created and is reset when [`retry`](../trait.Operation.html#method.retry) is called.
     pub start_time: Instant,
+    ///  The maximum elapsed time after instantiating [`ExponentialBackfff`](struct.ExponentialBackoff.html) or calling
+    /// [`reset`](trait.Backoff.html#method.reset) after which [`next_backoff`](../trait.Backoff.html#method.reset) returns `None`.
+    pub max_elapsed_time: Option<Duration>,
+    /// The clock used to get the current time.
+    pub clock: C,
 }
 
 impl<C> Default for ExponentialBackoff<C>
