@@ -7,16 +7,11 @@ pub trait Clock {
 
 /// `SystemClock` uses the system's clock to get the current time.
 /// This Clock should be used for real use-cases.
+#[derive(Default)]
 pub struct SystemClock {}
 
 impl Clock for SystemClock {
     fn now(&self) -> Instant {
         Instant::now()
-    }
-}
-
-impl Default for SystemClock {
-    fn default() -> Self {
-        SystemClock {}
     }
 }
