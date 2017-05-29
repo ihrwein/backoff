@@ -25,6 +25,8 @@ let mut backoff = ExponentialBackoff::default();
 op.retry(&mut backoff)
 ```
 
+The retry policy will use jitters according to the `randomization_factor` field of `ExponentialBackoff`. Check the documentation for more parameters.
+
 ## Examples
 
 ### Permanent errors
