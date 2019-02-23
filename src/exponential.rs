@@ -3,9 +3,9 @@ use std::time::Instant;
 
 use rand;
 
-use default;
-use backoff::Backoff;
-use clock::Clock;
+use crate::default;
+use crate::backoff::Backoff;
+use crate::clock::Clock;
 
 pub struct ExponentialBackoff<C> {
     /// The current retry interval.
@@ -123,7 +123,7 @@ impl<C> Backoff for ExponentialBackoff<C>
 
 
 #[cfg(test)]
-use clock::SystemClock;
+use crate::clock::SystemClock;
 
 #[test]
 fn get_randomized_interval() {
