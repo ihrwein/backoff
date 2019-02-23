@@ -38,7 +38,7 @@ impl Constant {
     /// Creates a new Constant backoff with `interval` contant
     /// backoff.
     pub fn new(interval: Duration) -> Constant {
-        Constant { interval: interval }
+        Constant { interval }
     }
 }
 
