@@ -16,7 +16,7 @@ Retry operations with exponential backoff policy.
 travis-ci = { repository = "ihrwein/backoff" }
 
 [dependencies]
-rand = "0.3.15"
+rand = "0.6.5"
 
 [dev-dependencies]
-reqwest = "0.6"
+reqwest = "0.9.10"

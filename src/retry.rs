@@ -1,8 +1,8 @@
 use std::time::Duration;
 use std::thread;
 
-use error::Error;
-use backoff::Backoff;
+use crate::error::Error;
+use crate::backoff::Backoff;
 
 /// Operation is an operation that can be retried if it fails.
 ///

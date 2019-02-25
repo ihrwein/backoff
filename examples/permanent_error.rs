@@ -2,12 +2,11 @@ extern crate backoff;
 extern crate reqwest;
 
 use backoff::{Error, ExponentialBackoff, Operation};
-use reqwest::IntoUrl;
+use reqwest::Url;
 
 use std::fmt::Display;
 use std::io::{self, Read};
 
-#[allow(needless_pass_by_value)]
 fn new_io_err<E: Display>(err: E) -> io::Error {
     io::Error::new(io::ErrorKind::Other, err.to_string())
 }
@@ -15,7 +14,7 @@ fn new_io_err<E: Display>(err: E) -> io::Error {
 fn fetch_url(url: &str) -> Result<String, Error<io::Error>> {
     let mut op = || {
         println!("Fetching {}", url);
-        let url = url.into_url()
+        let url = Url::parse(url)
             .map_err(new_io_err)
             // Permanent errors need to be explicitly constucted.
             .map_err(Error::Permanent)?;

@@ -57,9 +57,9 @@ pub mod exponential;
 pub mod default;
 mod clock;
 
-pub use error::Error;
-pub use clock::{Clock, SystemClock};
-pub use retry::{Notify, Operation};
+pub use crate::error::Error;
+pub use crate::clock::{Clock, SystemClock};
+pub use crate::retry::{Notify, Operation};
 
 /// Exponential backoff policy with system's clock.
 ///
