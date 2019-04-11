@@ -7,6 +7,7 @@ use crate::default;
 use crate::backoff::Backoff;
 use crate::clock::Clock;
 
+#[derive(Debug)]
 pub struct ExponentialBackoff<C> {
     /// The current retry interval.
     pub current_interval: Duration,
