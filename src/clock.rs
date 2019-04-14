@@ -7,7 +7,7 @@ pub trait Clock {
 
 /// `SystemClock` uses the system's clock to get the current time.
 /// This Clock should be used for real use-cases.
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct SystemClock {}
 
 impl Clock for SystemClock {

@@ -11,6 +11,7 @@ pub trait Backoff {
 }
 
 /// Immediately retry the operation.
+#[derive(Debug)]
 pub struct Zero {}
 
 impl Backoff for Zero {
@@ -20,6 +21,7 @@ impl Backoff for Zero {
 }
 
 /// The operation should never be retried.
+#[derive(Debug)]
 pub struct Stop {}
 
 impl Backoff for Stop {
@@ -30,6 +32,7 @@ impl Backoff for Stop {
 
 /// Contant is a backoff policy which always returns
 /// a constant duration.
+#[derive(Debug)]
 pub struct Constant {
     interval: Duration,
 }
