@@ -1,5 +1,5 @@
 use std::time::Duration;
-use std::time::Instant;
+use instant::Instant;
 
 use rand;
 

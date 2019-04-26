@@ -10,6 +10,8 @@ its [Golang port](https://github.com/cenkalti/backoff).
 
 Documentation: https://docs.rs/backoff
 
+Compile with feature `wasm-bindgen` for use in WASM environments.
+
 ## Usage
 
 Just wrap your fallible operation into a closure, and call `retry` on it:

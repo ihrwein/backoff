@@ -1,11 +1,13 @@
 extern crate backoff;
+extern crate instant;
 
 use backoff::exponential::ExponentialBackoff;
 use backoff::{Clock, SystemClock};
 use backoff::backoff::Backoff;
 
+use instant::Instant;
 use std::cell::RefCell;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 struct Inner {
     i: Duration,
