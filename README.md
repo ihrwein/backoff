@@ -10,6 +10,8 @@ its [Golang port](https://github.com/cenkalti/backoff).
 
 Documentation: https://docs.rs/backoff
 
+Compile with feature `wasm-bindgen` or `stdweb` for use in WASM environments. The `Operation` trait's default implementation of `retry_notify` is not yet supported, as it uses `std::thread::sleep`.
+
 ## Usage
 
 Just wrap your fallible operation into a closure, and call `retry` on it:

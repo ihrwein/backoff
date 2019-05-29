@@ -16,7 +16,13 @@ Retry operations with exponential backoff policy.
 travis-ci = { repository = "ihrwein/backoff" }
 
 [dependencies]
+instant = "0.1"
 rand = "0.6.5"
 
 [dev-dependencies]
 reqwest = "0.9.10"
+
+[features]
+default = []
+stdweb = ["instant/stdweb", "rand/stdweb"]
+wasm-bindgen = ["instant/wasm-bindgen", "rand/wasm-bindgen"]

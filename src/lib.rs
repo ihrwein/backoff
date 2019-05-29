@@ -48,6 +48,8 @@
 //!    9        | 12.807                   | [6.403, 19.210]
 //!   10        | 19.210                   | None
 //!
+
+extern crate instant;
 extern crate rand;
 
 mod error;
