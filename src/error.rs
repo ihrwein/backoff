@@ -31,8 +31,8 @@ impl<E> fmt::Debug for Error<E>
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let (name, err) = match *self {
-            Error::Permanent(ref err) => ("Permanent", err as &fmt::Debug),
-            Error::Transient(ref err) => ("Transient", err as &fmt::Debug),
+            Error::Permanent(ref err) => ("Permanent", err as &dyn fmt::Debug),
+            Error::Transient(ref err) => ("Transient", err as &dyn fmt::Debug),
         };
         f.debug_tuple(name).field(err).finish()
     }
@@ -48,11 +48,15 @@ impl<E> error::Error for Error<E>
         }
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match *self {
             Error::Permanent(ref err) |
-            Error::Transient(ref err) => err.cause(),
+            Error::Transient(ref err) => err.source(),
         }
+    }
+
+    fn cause(&self) -> Option<&dyn error::Error> {
+        self.source()
     }
 }
 
