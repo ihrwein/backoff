@@ -17,7 +17,7 @@ travis-ci = { repository = "ihrwein/backoff" }
 
 [dependencies]
 instant = "0.1"
-rand = "0.6.5"
+rand = "0.7"
 
 [dev-dependencies]
 reqwest = "0.9.10"
