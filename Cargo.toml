@@ -20,7 +20,7 @@ instant = "0.1"
 rand = "0.7"
 
 [dev-dependencies]
-reqwest = "0.9.10"
+reqwest = { version = "0.10.1", features = ["json", "blocking"] }
 
 [features]
 default = []
