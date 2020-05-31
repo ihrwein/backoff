@@ -19,7 +19,7 @@ fn fetch_url(url: &str) -> Result<String, Error<io::Error>> {
             // Permanent errors need to be explicitly constucted.
             .map_err(Error::Permanent)?;
 
-        let mut resp = reqwest::get(url)
+        let mut resp = reqwest::blocking::get(url)
             // Transient errors can be constructed with the ? operator
             // or with the try! macro. No explicit conversion needed
             // from E: Error to backoff::Error;
