@@ -54,6 +54,7 @@ extern crate rand;
 
 mod error;
 mod retry;
+pub mod async_retry;
 pub mod backoff;
 pub mod exponential;
 pub mod default;

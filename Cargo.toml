@@ -2,6 +2,7 @@
 name = "backoff"
 version = "0.1.7-alpha.0"
 authors = ["Tibor Benke <ihrwein@gmail.com>"]
+edition = "2018"
 license = "MIT/Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/ihrwein/backoff"
@@ -16,6 +17,9 @@ Retry operations with exponential backoff policy.
 travis-ci = { repository = "ihrwein/backoff" }
 
 [dependencies]
+async-std = "1.0"
+async-trait = "0.1"
+futures = "0.3"
 instant = "0.1"
 rand = "0.7"
 
