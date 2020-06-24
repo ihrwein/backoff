@@ -45,7 +45,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// # use backoff::{ExponentialBackoff, async_retry::AsyncOperation, Error};
+    /// # use backoff::{ExponentialBackoff, AsyncOperation, Error};
     /// async fn f() -> Result<(), Error<&'static str>> {
     ///     // Business logic...
     ///     // Give up.
@@ -65,7 +65,7 @@ where
     /// or using `Box::pin` if params are required
     ///
     /// ```rust
-    /// # use backoff::{ExponentialBackoff, async_retry::AsyncOperation, Error};
+    /// # use backoff::{ExponentialBackoff, AsyncOperation, Error};
     /// # use futures::future::BoxFuture;
     /// # async fn main_task() {
     /// let arg = "Async all the things!";
@@ -101,7 +101,7 @@ where
     /// # Examples
     ///
     /// ```rust
-    /// # use backoff::{async_retry::AsyncOperation, Error};
+    /// # use backoff::{AsyncOperation, Error};
     /// # use backoff::backoff::Stop;
     /// # use std::time::Duration;
     /// # use std::fmt::Display;

@@ -54,7 +54,6 @@ extern crate rand;
 
 mod error;
 mod retry;
-pub mod async_retry;
 pub mod backoff;
 pub mod exponential;
 pub mod default;
@@ -63,6 +62,11 @@ mod clock;
 pub use crate::error::Error;
 pub use crate::clock::{Clock, SystemClock};
 pub use crate::retry::{Notify, Operation};
+
+#[cfg(feature = "async")]
+mod async_retry;
+#[cfg(feature = "async")]
+pub use crate::async_retry::{AsyncNotify, AsyncOperation};
 
 /// Exponential backoff policy with system's clock.
 ///
