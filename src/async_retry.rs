@@ -6,12 +6,12 @@ use async_trait::async_trait;
 use crate::backoff::Backoff;
 use crate::error::Error;
 
-pub trait AnyFn {
+pub trait AnyFnMut {
     type Output;
     fn call(&mut self) -> Self::Output;
 }
 
-impl<F, T> AnyFn for F
+impl<F, T> AnyFnMut for F
 where
     F: FnMut() -> T,
 {
@@ -161,7 +161,7 @@ where
 impl<T, E, F> AsyncOperation<T, E> for F
 where
     E: Sync + Send,
-    F: AnyFn + Sync + Send,
+    F: AnyFnMut + Sync + Send,
     F::Output: Future<Output = Result<T, Error<E>>> + Send,
 {
     async fn call_op(&mut self) -> Result<T, Error<E>>
@@ -173,17 +173,17 @@ where
     }
 }
 
-pub trait TwoArgFn<E> {
+pub trait Notifier<E> {
     type Output;
-    fn call(&self, err: E, duration: Duration) -> Self::Output;
+    fn call(&mut self, err: E, duration: Duration) -> Self::Output;
 }
 
-impl<F, E, T> TwoArgFn<E> for F
+impl<F, E, T> Notifier<E> for F
 where
-    F: Fn(E, Duration) -> T,
+    F: FnMut(E, Duration) -> T,
 {
     type Output = T;
-    fn call(&self, err: E, duration: Duration) -> Self::Output {
+    fn call(&mut self, err: E, duration: Duration) -> Self::Output {
         self(err, duration)
     }
 }
@@ -200,7 +200,7 @@ pub trait AsyncNotify<E> {
 impl<E, F> AsyncNotify<E> for F
 where
     E: Sync + Send,
-    F: TwoArgFn<E> + Sync + Send,
+    F: Notifier<E> + Sync + Send,
     F::Output: Future<Output = ()> + Send,
 {
     async fn notify(&mut self, err: E, duration: Duration)
