@@ -1,6 +1,3 @@
-extern crate backoff;
-extern crate reqwest;
-
 use backoff::{Error, ExponentialBackoff, Operation};
 
 use std::io::Read;
@@ -21,7 +18,7 @@ fn fetch_url(url: &str) -> Result<String, Error<reqwest::Error>> {
 
 fn main() {
     match fetch_url("https://www.rust-lang.org") {
-        Ok(_) => println!("Sucessfully fetched"),
+        Ok(_) => println!("Successfully fetched"),
         Err(err) => panic!("Failed to fetch: {}", err),
     }
 }

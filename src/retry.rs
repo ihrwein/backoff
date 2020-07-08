@@ -1,8 +1,11 @@
-use std::time::Duration;
-use std::thread;
+#[cfg(any(feature = "tokio", feature = "async-std"))]
+pub mod r#async;
 
-use crate::error::Error;
+use std::thread;
+use std::time::Duration;
+
 use crate::backoff::Backoff;
+use crate::error::Error;
 
 /// Operation is an operation that can be retried if it fails.
 ///
@@ -32,7 +35,8 @@ pub trait Operation<T, E> {
     /// let _ = f.retry(&mut backoff).err().unwrap();
     /// ```
     fn retry<B>(&mut self, backoff: &mut B) -> Result<T, Error<E>>
-        where B: Backoff
+    where
+        B: Backoff,
     {
         let nop = |_, _| ();
         self.retry_notify(backoff, nop)
@@ -58,8 +62,9 @@ pub trait Operation<T, E> {
     /// let _ = f.retry_notify(&mut backoff, notify).err().unwrap();
     /// ```
     fn retry_notify<B, N>(&mut self, backoff: &mut B, mut notify: N) -> Result<T, Error<E>>
-        where N: Notify<E>,
-              B: Backoff
+    where
+        N: Notify<E>,
+        B: Backoff,
     {
         backoff.reset();
 
@@ -85,9 +90,9 @@ pub trait Operation<T, E> {
     }
 }
 
-
 impl<T, E, F> Operation<T, E> for F
-    where F: FnMut() -> Result<T, Error<E>>
+where
+    F: FnMut() -> Result<T, Error<E>>,
 {
     fn call_op(&mut self) -> Result<T, Error<E>> {
         self()
@@ -100,9 +105,18 @@ pub trait Notify<E> {
 }
 
 impl<E, F> Notify<E> for F
-    where F: Fn(E, Duration)
+where
+    F: FnMut(E, Duration),
 {
     fn notify(&mut self, err: E, duration: Duration) {
         self(err, duration)
     }
+}
+
+/// No-op implementation of [`Notify`]. Literally does nothing.
+#[derive(Debug, Clone, Copy)]
+pub struct NoopNotify;
+
+impl<E> Notify<E> for NoopNotify {
+    fn notify(&mut self, _: E, _: Duration) {}
 }
