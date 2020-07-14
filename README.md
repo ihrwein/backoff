@@ -39,9 +39,6 @@ into `Error::Permanent`. You can use `Result`'s `map_err` method.
 `examples/permanent_error.rs`:
 
 ```rust
-extern crate backoff;
-extern crate reqwest;
-
 use backoff::{Error, ExponentialBackoff, Operation};
 use reqwest::IntoUrl;
 
@@ -106,9 +103,6 @@ By using the ? operator or the `try!` macro, you always get transient errors.
 `examples/retry.rs`:
 
 ```rust
-extern crate backoff;
-extern crate reqwest;
-
 use backoff::{Error, ExponentialBackoff, Operation};
 
 use std::io::Read;
@@ -165,6 +159,65 @@ Fetching https://www.rust-lang.org
 real	0m2.826s
 user	0m0.008s
 sys	0m0.000s
+```
+
+### Async
+
+A closure returning `Future<Output = Result<T, backoff::Error<E>>` can be easily retried
+by using `backoff::future::FutureOperation` extension.
+
+`examples/async.rs`:
+
+```rust
+use backoff::{future::FutureOperation as _, ExponentialBackoff};
+
+async fn fetch_url(url: &str) -> Result<String, reqwest::Error> {
+    (|| async {
+        println!("Fetching {}", url);
+        Ok(reqwest::get(url).await?.text().await?)
+    })
+    .retry(ExponentialBackoff::default())
+    .await
+}
+
+#[tokio::main]
+async fn main() {
+    match fetch_url("https://www.rust-lang.org").await {
+        Ok(_) => println!("Successfully fetched"),
+        Err(err) => panic!("Failed to fetch: {}", err),
+    }
+}
+```
+
+Output with internet connection:
+
+```
+$ time cargo run --example async --features tokio
+    Finished dev [unoptimized + debuginfo] target(s) in 0.14s
+     Running `target/debug/examples/async`
+Fetching https://www.rust-lang.org
+Successfully fetched
+
+real	0m0.994s
+user	0m0.124s
+sys	0m0.082s
+```
+
+Output without internet connection
+
+```
+$ time cargo run --example async --features tokio
+    Finished dev [unoptimized + debuginfo] target(s) in 0.0 secs
+     Running `target/debug/examples/retry`
+Fetching https://www.rust-lang.org
+Fetching https://www.rust-lang.org
+Fetching https://www.rust-lang.org
+Fetching https://www.rust-lang.org
+^C
+
+real	0m2.721s
+user	0m0.118s
+sys	0m0.076s
 ```
 
 ## License

@@ -1,6 +1,3 @@
-extern crate backoff;
-extern crate reqwest;
-
 use backoff::{Error, ExponentialBackoff, Operation};
 use reqwest::Url;
 
@@ -16,7 +13,7 @@ fn fetch_url(url: &str) -> Result<String, Error<io::Error>> {
         println!("Fetching {}", url);
         let url = Url::parse(url)
             .map_err(new_io_err)
-            // Permanent errors need to be explicitly constucted.
+            // Permanent errors need to be explicitly constructed.
             .map_err(Error::Permanent)?;
 
         let mut resp = reqwest::blocking::get(url)
@@ -36,7 +33,7 @@ fn fetch_url(url: &str) -> Result<String, Error<io::Error>> {
 
 fn main() {
     match fetch_url("https::///wrong URL") {
-        Ok(_) => println!("Sucessfully fetched"),
+        Ok(_) => println!("Successfully fetched"),
         Err(err) => panic!("Failed to fetch: {}", err),
     }
 }

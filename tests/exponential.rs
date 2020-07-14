@@ -1,9 +1,9 @@
 extern crate backoff;
 extern crate instant;
 
+use backoff::backoff::Backoff;
 use backoff::exponential::ExponentialBackoff;
 use backoff::{Clock, SystemClock};
-use backoff::backoff::Backoff;
 
 use instant::Instant;
 use std::cell::RefCell;
