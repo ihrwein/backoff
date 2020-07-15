@@ -39,3 +39,6 @@ async-std = ["async_std_1", "futures-core", "pin-project"]
 [[example]]
 name = "async"
 required-features = ["tokio"]
+
+[package.metadata.docs.rs]
+features = ["tokio"]
