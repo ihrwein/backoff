@@ -164,6 +164,12 @@ sys	0m0.000s
 
 ### Async
 
+Please set either the `tokio` or `async-std` features in Cargo.toml to enable the async support of this library, i.e.:
+
+```toml
+backoff = { version = "0.2.1", features = ["async-std"] }
+```
+
 A closure returning `Future<Output = Result<T, backoff::Error<E>>` can be easily retried
 by using `backoff::future::FutureOperation` extension.
 
