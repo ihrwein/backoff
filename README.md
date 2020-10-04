@@ -7,9 +7,7 @@ its [Golang port](https://github.com/cenkalti/backoff).
 
 [![Build Status](https://travis-ci.org/ihrwein/backoff.svg?branch=master)](https://travis-ci.org/ihrwein/backoff)
 [![crates.io](http://meritbadge.herokuapp.com/backoff)](https://crates.io/crates/backoff)
-[![Documentation](https://docs.rs/backoff/badge.svg)](https://docs.rs/backoff/badge.svg)
-
-Documentation: https://docs.rs/backoff
+[![Documentation](https://docs.rs/backoff/badge.svg)](https://docs.rs/backoff)
 
 Compile with feature `wasm-bindgen` or `stdweb` for use in WASM environments. The `Operation` trait's default implementation of `retry_notify` is not yet supported, as it uses `std::thread::sleep`.
 
