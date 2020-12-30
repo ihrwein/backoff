@@ -51,7 +51,7 @@
 #[cfg(feature = "async-std")]
 extern crate async_std_1 as async_std;
 #[cfg(feature = "tokio")]
-extern crate tokio_02 as tokio;
+extern crate tokio_1 as tokio;
 
 pub mod backoff;
 mod clock;
