@@ -6,19 +6,24 @@ use std::{
 
 use futures_core::ready;
 use pin_project::pin_project;
-#[cfg(feature = "tokio")]
-use tokio::time::{delay_for, Delay};
 
 use crate::{backoff::Backoff, error::Error};
 
 use super::{NoopNotify, Notify};
 
+// time::Sleep in tokio 1.0 is Unpin
+#[cfg(feature = "tokio")]
+type Sleep = Pin<Box<tokio::time::Sleep>>;
 #[cfg(feature = "async-std")]
-type Delay = Pin<Box<dyn Future<Output = ()> + 'static + Send>>;
+type Sleep = Pin<Box<dyn Future<Output = ()> + 'static + Send>>;
 
-#[cfg(feature = "async-std")]
-fn delay_for(duration: std::time::Duration) -> Delay {
-    Box::pin(async_std::task::sleep(duration))
+fn sleep(duration: std::time::Duration) -> Sleep {
+    #[cfg(feature = "async-std")]
+    use async_std::task::sleep;
+    #[cfg(feature = "tokio")]
+    use tokio::time::sleep;
+
+    Box::pin(sleep(duration))
 }
 
 pub mod future {
@@ -225,7 +230,7 @@ pub struct Retry<B, N, Fn, Fut> {
     backoff: B,
 
     /// [`Future`] which delays execution before next [`Retry::operation`] invocation.
-    delay: Option<Delay>,
+    delay: Option<Sleep>,
 
     /// Operation to be retried. It must return [`Future`].
     operation: Fn,
@@ -262,7 +267,7 @@ where
                 Err(Error::Transient(e)) => match this.backoff.next_backoff() {
                     Some(duration) => {
                         this.notify.notify(e, duration);
-                        this.delay.replace(delay_for(duration));
+                        this.delay.replace(sleep(duration));
                         this.fut.set((this.operation)());
                     }
                     None => return Poll::Ready(Err(e)),
