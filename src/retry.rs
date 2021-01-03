@@ -1,4 +1,4 @@
-#[cfg(any(feature = "tokio", feature = "async-std"))]
+#[cfg(feature = "futures")]
 pub mod r#async;
 
 use std::thread;
