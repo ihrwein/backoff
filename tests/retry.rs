@@ -2,7 +2,6 @@ extern crate backoff;
 
 use backoff::Error;
 use backoff::ExponentialBackoff;
-use backoff::Operation;
 
 use std::io;
 
@@ -12,7 +11,7 @@ fn retry() {
     let success_on = 3;
 
     {
-        let mut f = || -> Result<(), Error<io::Error>> {
+        let f = || -> Result<(), Error<io::Error>> {
             i += 1;
             if i == success_on {
                 return Ok(());
@@ -25,7 +24,7 @@ fn retry() {
         };
 
         let mut backoff = ExponentialBackoff::default();
-        f.retry(&mut backoff).ok().unwrap();
+        backoff::retry(&mut backoff, f).ok().unwrap();
     }
 
     assert_eq!(i, success_on);
@@ -33,7 +32,7 @@ fn retry() {
 
 #[test]
 fn permanent_error_immediately_returned() {
-    let mut f = || -> Result<(), Error<io::Error>> {
+    let f = || -> Result<(), Error<io::Error>> {
         Err(Error::Permanent(io::Error::new(
             io::ErrorKind::Other,
             "err",
@@ -41,7 +40,7 @@ fn permanent_error_immediately_returned() {
     };
 
     let mut backoff = ExponentialBackoff::default();
-    match f.retry(&mut backoff).err().unwrap() {
+    match backoff::retry(&mut backoff, f).err().unwrap() {
         Error::Permanent(_) => (),
         other => panic!("{}", other),
     }

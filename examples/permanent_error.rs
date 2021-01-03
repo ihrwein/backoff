@@ -1,4 +1,4 @@
-use backoff::{Error, ExponentialBackoff, Operation};
+use backoff::{Error, ExponentialBackoff};
 use reqwest::Url;
 
 use std::fmt::Display;
@@ -9,7 +9,7 @@ fn new_io_err<E: Display>(err: E) -> io::Error {
 }
 
 fn fetch_url(url: &str) -> Result<String, Error<io::Error>> {
-    let mut op = || {
+    let op = || {
         println!("Fetching {}", url);
         let url = Url::parse(url)
             .map_err(new_io_err)
@@ -28,7 +28,7 @@ fn fetch_url(url: &str) -> Result<String, Error<io::Error>> {
     };
 
     let mut backoff = ExponentialBackoff::default();
-    op.retry(&mut backoff)
+    backoff::retry(&mut backoff, op)
 }
 
 fn main() {
