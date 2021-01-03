@@ -48,11 +48,6 @@
 //!    9        | 12.807                   | [6.403, 19.210]
 //!   10        | 19.210                   | None
 
-#[cfg(feature = "async-std")]
-extern crate async_std_1 as async_std;
-#[cfg(feature = "tokio")]
-extern crate tokio_1 as tokio;
-
 pub mod backoff;
 mod clock;
 pub mod default;
@@ -64,8 +59,13 @@ pub use crate::clock::{Clock, SystemClock};
 pub use crate::error::Error;
 pub use crate::retry::{Notify, Operation};
 
-#[cfg(any(feature = "tokio", feature = "async-std"))]
+#[cfg(feature = "futures")]
 pub use crate::retry::r#async::future;
+
+#[cfg(feature = "async-std")]
+pub use crate::retry::r#async::async_std;
+#[cfg(feature = "tokio")]
+pub use crate::retry::r#async::tokio;
 
 /// Exponential backoff policy with system's clock.
 ///
