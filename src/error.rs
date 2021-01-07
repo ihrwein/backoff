@@ -1,5 +1,5 @@
-use std::fmt;
 use std::error;
+use std::fmt;
 
 /// Error is the error value in an operation's
 /// result.
@@ -16,18 +16,19 @@ pub enum Error<E> {
 }
 
 impl<E> fmt::Display for Error<E>
-    where E: fmt::Display
+where
+    E: fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
-            Error::Permanent(ref err) |
-            Error::Transient(ref err) => err.fmt(f),
+            Error::Permanent(ref err) | Error::Transient(ref err) => err.fmt(f),
         }
     }
 }
 
 impl<E> fmt::Debug for Error<E>
-    where E: fmt::Debug
+where
+    E: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let (name, err) = match *self {
@@ -39,7 +40,8 @@ impl<E> fmt::Debug for Error<E>
 }
 
 impl<E> error::Error for Error<E>
-    where E: error::Error
+where
+    E: error::Error,
 {
     fn description(&self) -> &str {
         match *self {
@@ -50,8 +52,7 @@ impl<E> error::Error for Error<E>
 
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match *self {
-            Error::Permanent(ref err) |
-            Error::Transient(ref err) => err.source(),
+            Error::Permanent(ref err) | Error::Transient(ref err) => err.source(),
         }
     }
 

@@ -143,9 +143,9 @@
 //! Fetching https://www.rust-lang.org
 //! Sucessfully fetched
 //!
-//! real	0m2.003s
-//! user	0m1.536s
-//! sys	0m0.184s
+//! real    0m2.003s
+//! user    0m1.536s
+//! sys    0m0.184s
 //! ```
 //!
 //! Output without internet connection
@@ -160,9 +160,9 @@
 //! Fetching https://www.rust-lang.org
 //! ^C
 //!
-//! real	0m2.826s
-//! user	0m0.008s
-//! sys	0m0.000s
+//! real    0m2.826s
+//! user    0m0.008s
+//! sys    0m0.000s
 //! ```
 //!
 //! ### Async
@@ -178,6 +178,7 @@
 //! `examples/async.rs`:
 //!
 //! ```rust,no_run
+//!
 //! extern crate tokio_1 as tokio;
 //!
 //! use backoff::ExponentialBackoff;
