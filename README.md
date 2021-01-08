@@ -46,7 +46,7 @@ use backoff::ExponentialBackoff;
 use backoff::tokio::retry;
 
 async fn fetch_url(url: &str) -> Result<String, reqwest::Error> {
-    retry(ExponentialBackoff::default(), async {
+    retry(ExponentialBackoff::default(), || async {
         println!("Fetching {}", url);
         Ok(reqwest::get(url).await?.text().await?)
     })
@@ -77,7 +77,7 @@ The `Operation` trait has been removed, please use normal closures implementing 
 
 #### Removal of FutureOperation trait
 
-The `FutureOperation` trait has been removed, please use normal Futures instead. There is no need to create a future which creates another future. The `retry` and `retry_notify` methods were converted to free functions, available in the crate's root:
+The `FutureOperation` trait has been removed. The `retry` and `retry_notify` methods were converted to free functions, available in the crate's root:
 
 ```diff
 
@@ -87,7 +87,7 @@ The `FutureOperation` trait has been removed, please use normal Futures instead.
  
  async fn fetch_url(url: &str) -> Result<String, reqwest::Error> {
 -    (|| async {
-+    backoff::tokio::retry(ExponentialBackoff::default(), async {
++    backoff::tokio::retry(ExponentialBackoff::default(), || async {
          Ok(reqwest::get(url).await?.text().await?)
      })
 -    .retry(ExponentialBackoff::default())
