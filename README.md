@@ -9,221 +9,95 @@ its [Golang port](https://github.com/cenkalti/backoff).
 [![crates.io](http://meritbadge.herokuapp.com/backoff)](https://crates.io/crates/backoff)
 [![Documentation](https://docs.rs/backoff/badge.svg)](https://docs.rs/backoff)
 
-Compile with feature `wasm-bindgen` or `stdweb` for use in WASM environments. The `Operation` trait's default implementation of `retry_notify` is not yet supported, as it uses `std::thread::sleep`.
+Compile with feature `wasm-bindgen` or `stdweb` for use in WASM environments. `retry_notify` is not yet supported, as it uses `std::thread::sleep`.
 
-## Usage
+:warning: **BREAKING CHANGES**: migration instructions under [Breaking changes](#breaking-changes).
 
-Just wrap your fallible operation into a closure, and call `retry` on it:
+## Overview
+
+`backoff` is small crate which allows you to retry operations according to backoff policies. It provides:
+
+* Error type to wrap errors as either transient of permanent,
+* different backoff algorithms, including exponential,
+* supporting both sync and async code.
+
+## Sync example
+
+Just wrap your fallible operation into a closure, and pass it into `retry`:
 
 ```rust
-let mut op = || {
-    println!("Fetching {}", url);
-    let mut resp = reqwest::get(url)?;
-    ...
+use backoff::{retry, ExponentialBackoff, Error};
+
+let op = || {
+    reqwest::blocking::get("http://example.com").map_err(Error::Transient)
 };
 
-let mut backoff = ExponentialBackoff::default();
-op.retry(&mut backoff)
+let _ = retry(&mut ExponentialBackoff::default(), op);
 ```
 
 The retry policy will use jitters according to the `randomization_factor` field of `ExponentialBackoff`. Check the documentation for more parameters.
 
-## Examples
+## Async example
 
-### Permanent errors
-
-Permanent errors are not retried. You have to wrap your error value explicitly
-into `Error::Permanent`. You can use `Result`'s `map_err` method.
-
-`examples/permanent_error.rs`:
+Futures are supported by the `futures` module:
 
 ```rust
-use backoff::{Error, ExponentialBackoff, Operation};
-use reqwest::IntoUrl;
-
-use std::fmt::Display;
-use std::io::{self, Read};
-
-fn new_io_err<E: Display>(err: E) -> io::Error {
-    io::Error::new(io::ErrorKind::Other, err.to_string())
-}
-
-fn fetch_url(url: &str) -> Result<String, Error<io::Error>> {
-    let mut op = || {
-        println!("Fetching {}", url);
-        let url = url.into_url()
-            .map_err(new_io_err)
-            // Permanent errors need to be explicitly constucted.
-            .map_err(Error::Permanent)?;
-
-        let mut resp = reqwest::get(url)
-            // Transient errors can be constructed with the ? operator
-            // or with the try! macro. No explicit conversion needed
-            // from E: Error to backoff::Error;
-            .map_err(new_io_err)?;
-
-        let mut content = String::new();
-        let _ = resp.read_to_string(&mut content);
-        Ok(content)
-    };
-
-    let mut backoff = ExponentialBackoff::default();
-    op.retry(&mut backoff)
-}
-
-fn main() {
-    match fetch_url("https::///wrong URL") {
-        Ok(_) => println!("Sucessfully fetched"),
-        Err(err) => panic!("Failed to fetch: {}", err),
-    }
-}
-```
-
-Output:
-
-```
-$ time cargo run --example permanent_error
-    Finished dev [unoptimized + debuginfo] target(s) in 0.0 secs
-     Running `target/debug/examples/permanent_error`
-Fetching https::///wrong URL
-thread 'main' panicked at 'Failed to fetch: empty host', examples/permanent_error.rs:33
-note: Run with `RUST_BACKTRACE=1` for a backtrace.
-
-real	0m0.151s
-user	0m0.116s
-sys	0m0.028s
-```
-
-### Transient errors
-
-Transient errors can be constructed by wrapping your error value into `Error::Transient`.
-By using the ? operator or the `try!` macro, you always get transient errors.
-
-`examples/retry.rs`:
-
-```rust
-use backoff::{Error, ExponentialBackoff, Operation};
-
-use std::io::Read;
-
-fn fetch_url(url: &str) -> Result<String, Error<reqwest::Error>> {
-    let mut op = || {
-        println!("Fetching {}", url);
-        let mut resp = reqwest::get(url)?;
-
-        let mut content = String::new();
-        let _ = resp.read_to_string(&mut content);
-        Ok(content)
-    };
-
-    let mut backoff = ExponentialBackoff::default();
-    op.retry(&mut backoff)
-}
-
-fn main() {
-    match fetch_url("https://www.rust-lang.org") {
-        Ok(_) => println!("Sucessfully fetched"),
-        Err(err) => panic!("Failed to fetch: {}", err),
-    }
-}
-```
-
-Output with internet connection:
-
-```
-$ time cargo run --example retry
-   Compiling backoff v0.1.0 (file:///home/tibi/workspace/backoff)
-    Finished dev [unoptimized + debuginfo] target(s) in 1.54 secs
-     Running `target/debug/examples/retry`
-Fetching https://www.rust-lang.org
-Sucessfully fetched
-
-real	0m2.003s
-user	0m1.536s
-sys	0m0.184s
-```
-
-Output without internet connection
-
-```
-$ time cargo run --example retry
-    Finished dev [unoptimized + debuginfo] target(s) in 0.0 secs
-     Running `target/debug/examples/retry`
-Fetching https://www.rust-lang.org
-Fetching https://www.rust-lang.org
-Fetching https://www.rust-lang.org
-Fetching https://www.rust-lang.org
-^C
-
-real	0m2.826s
-user	0m0.008s
-sys	0m0.000s
-```
-
-### Async
-
-Please set either the `tokio` or `async-std` features in Cargo.toml to enable the async support of this library, i.e.:
-
-```toml
-backoff = { version = "0.2.1", features = ["async-std"] }
-```
-
-A closure returning `Future<Output = Result<T, backoff::Error<E>>` can be easily retried
-by using `backoff::future::FutureOperation` extension.
-
-`examples/async.rs`:
-
-```rust
-use backoff::{future::FutureOperation as _, ExponentialBackoff};
+use backoff::ExponentialBackoff;
+use backoff::tokio::retry;
 
 async fn fetch_url(url: &str) -> Result<String, reqwest::Error> {
-    (|| async {
+    retry(ExponentialBackoff::default(), || async {
         println!("Fetching {}", url);
         Ok(reqwest::get(url).await?.text().await?)
     })
-    .retry(ExponentialBackoff::default())
     .await
 }
-
-#[tokio::main]
-async fn main() {
-    match fetch_url("https://www.rust-lang.org").await {
-        Ok(_) => println!("Successfully fetched"),
-        Err(err) => panic!("Failed to fetch: {}", err),
-    }
-}
 ```
 
-Output with internet connection:
+## Breaking changes
 
+### 0.2.x -> 0.3.x
+
+#### Removal of Operation trait
+
+The `Operation` trait has been removed, please use normal closures implementing `FnMut` instead. The `retry` and `retry_notify` methods were converted to free functions, available in the crate's root:  
+
+```diff
+-let mut op = || {
++let op = || {
+     println!("Fetching {}", url);
+     let mut resp = reqwest::get(url)?;
+     ...
+ };
+ 
+ let mut backoff = ExponentialBackoff::default();
+-op.retry(&mut backoff)
++retry(&mut backoff, op)
 ```
-$ time cargo run --example async --features tokio
-    Finished dev [unoptimized + debuginfo] target(s) in 0.14s
-     Running `target/debug/examples/async`
-Fetching https://www.rust-lang.org
-Successfully fetched
 
-real	0m0.994s
-user	0m0.124s
-sys	0m0.082s
+#### Removal of FutureOperation trait
+
+The `FutureOperation` trait has been removed. The `retry` and `retry_notify` methods were converted to free functions, available in the crate's root:
+
+```diff
+
++extern crate tokio_1 as tokio;
++
++use backoff::ExponentialBackoff;
+ 
+ async fn fetch_url(url: &str) -> Result<String, reqwest::Error> {
+-    (|| async {
++    backoff::tokio::retry(ExponentialBackoff::default(), || async {
+         Ok(reqwest::get(url).await?.text().await?)
+     })
+-    .retry(ExponentialBackoff::default())
+     .await
+ }
 ```
 
-Output without internet connection
+#### Changes in feature flags
 
-```
-$ time cargo run --example async --features tokio
-    Finished dev [unoptimized + debuginfo] target(s) in 0.0 secs
-     Running `target/debug/examples/retry`
-Fetching https://www.rust-lang.org
-Fetching https://www.rust-lang.org
-Fetching https://www.rust-lang.org
-Fetching https://www.rust-lang.org
-^C
-
-real	0m2.721s
-user	0m0.118s
-sys	0m0.076s
-```
+* `stdweb` flag was removed, as the project is abandoned.
 
 ## License
 

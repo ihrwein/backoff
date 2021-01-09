@@ -66,7 +66,7 @@ pub mod future {
     /// [`Backoff`] is reset before it is used.
     ///
     /// If you're using tokio or async_std, you may want to look at
-    /// [`backoff::tokio::retry_notify`] or [`backoff::async_std::retry_notify`]
+    /// [`crate::tokio::retry_notify`] or [`crate::async_std::retry_notify`]
     ///
     /// # Async `notify`
     ///

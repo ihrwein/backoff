@@ -6,7 +6,7 @@
 //!
 //! [`next_backoff`] is calculated using the following formula:
 //!
-//!```ignore
+//!```text
 //!  randomized interval =
 //!      retry_interval * (random value in range [1 - randomization_factor, 1 + randomization_factor])
 //!```
@@ -16,7 +16,7 @@
 //!
 //! For example, given the following parameters:
 //!
-//!```ignore
+//!```text
 //!retry_interval = 2
 //!randomization_factor = 0.5
 //!multiplier = 2
@@ -47,6 +47,164 @@
 //!    8        |  8.538                   | [4.269, 12.807]
 //!    9        | 12.807                   | [6.403, 19.210]
 //!   10        | 19.210                   | None
+//!
+//! # Examples
+//!
+//! ## Permanent errors
+//!
+//! Permanent errors are not retried. You have to wrap your error value explicitly
+//! into `Error::Permanent`. You can use `Result`'s `map_err` method.
+//!
+//! `examples/permanent_error.rs`:
+//!
+//! ```rust,no_run
+//! use backoff::{Error, ExponentialBackoff};
+//! use reqwest::Url;
+//!
+//! use std::fmt::Display;
+//! use std::io::{self, Read};
+//!
+//! fn new_io_err<E: Display>(err: E) -> io::Error {
+//!     io::Error::new(io::ErrorKind::Other, err.to_string())
+//! }
+//!
+//! fn fetch_url(url: &str) -> Result<String, Error<io::Error>> {
+//!     let op = || {
+//!         println!("Fetching {}", url);
+//!         let url = Url::parse(url)
+//!             .map_err(new_io_err)
+//!             // Permanent errors need to be explicitly constructed.
+//!             .map_err(Error::Permanent)?;
+//!
+//!         let mut resp = reqwest::blocking::get(url)
+//!             // Transient errors can be constructed with the ? operator
+//!             // or with the try! macro. No explicit conversion needed
+//!             // from E: Error to backoff::Error;
+//!             .map_err(new_io_err)?;
+//!
+//!         let mut content = String::new();
+//!         let _ = resp.read_to_string(&mut content);
+//!         Ok(content)
+//!     };
+//!
+//!     let mut backoff = ExponentialBackoff::default();
+//!     backoff::retry(&mut backoff, op)
+//! }
+//!
+//! fn main() {
+//!     match fetch_url("https::///wrong URL") {
+//!         Ok(_) => println!("Successfully fetched"),
+//!         Err(err) => panic!("Failed to fetch: {}", err),
+//!     }
+//! }
+//! ```
+//!
+//! ## Transient errors
+//!
+//! Transient errors can be constructed by wrapping your error value into `Error::Transient`.
+//! By using the ? operator or the `try!` macro, you always get transient errors.
+//!
+//! `examples/retry.rs`:
+//!
+//! ```rust
+//! use backoff::{retry, Error, ExponentialBackoff};
+//!
+//! use std::io::Read;
+//!
+//! fn fetch_url(url: &str) -> Result<String, Error<reqwest::Error>> {
+//!     let mut op = || {
+//!         println!("Fetching {}", url);
+//!         let mut resp = reqwest::blocking::get(url)?;
+//!
+//!         let mut content = String::new();
+//!         let _ = resp.read_to_string(&mut content);
+//!         Ok(content)
+//!     };
+//!
+//!     let mut backoff = ExponentialBackoff::default();
+//!     retry(&mut backoff, op)
+//! }
+//!
+//! fn main() {
+//!     match fetch_url("https://www.rust-lang.org") {
+//!         Ok(_) => println!("Sucessfully fetched"),
+//!         Err(err) => panic!("Failed to fetch: {}", err),
+//!     }
+//! }
+//! ```
+//!
+//! Output with internet connection:
+//!
+//! ```text
+//! $ time cargo run --example retry
+//!    Compiling backoff v0.1.0 (file:///home/tibi/workspace/backoff)
+//!     Finished dev [unoptimized + debuginfo] target(s) in 1.54 secs
+//!      Running `target/debug/examples/retry`
+//! Fetching https://www.rust-lang.org
+//! Sucessfully fetched
+//!
+//! real    0m2.003s
+//! user    0m1.536s
+//! sys    0m0.184s
+//! ```
+//!
+//! Output without internet connection
+//!
+//! ```text
+//! $ time cargo run --example retry
+//!     Finished dev [unoptimized + debuginfo] target(s) in 0.0 secs
+//!      Running `target/debug/examples/retry`
+//! Fetching https://www.rust-lang.org
+//! Fetching https://www.rust-lang.org
+//! Fetching https://www.rust-lang.org
+//! Fetching https://www.rust-lang.org
+//! ^C
+//!
+//! real    0m2.826s
+//! user    0m0.008s
+//! sys    0m0.000s
+//! ```
+//!
+//! ### Async
+//!
+//! Please set either the `tokio` or `async-std` features in Cargo.toml to enable the async support of this library, i.e.:
+//!
+//! ```toml
+//! backoff = { version = "x.y.z", features = ["tokio"] }
+//! ```
+//!
+//! A `Future<Output = Result<T, backoff::Error<E>>` can be easily retried:
+//!
+//! `examples/async.rs`:
+//!
+//! ```rust,no_run
+//!
+//! extern crate tokio_1 as tokio;
+//!
+//! use backoff::ExponentialBackoff;
+//!
+//! async fn fetch_url(url: &str) -> Result<String, reqwest::Error> {
+//!     backoff::tokio::retry(ExponentialBackoff::default(), || async {
+//!         println!("Fetching {}", url);
+//!         Ok(reqwest::get(url).await?.text().await?)
+//!     })
+//!     .await
+//! }
+//!
+//! #[tokio::main]
+//! async fn main() {
+//!     match fetch_url("https://www.rust-lang.org").await {
+//!         Ok(_) => println!("Successfully fetched"),
+//!         Err(err) => panic!("Failed to fetch: {}", err),
+//!     }
+//! }
+//! ```
+//! # Feature flags
+//!
+//! - `futures`: enables futures support,
+//! - `tokio`: enables support for the [tokio](https://crates.io/crates/tokio) async runtime, implies `futures`,
+//! - `async-std`: enables support for the [async-std](https://crates.io/crates/async-std) async runtime, implies `futures`,
+//! - `wasm-bindgen`: enabled support for [wasm-bindgen](https://crates.io/crates/wasm-bindgen).
 
 pub mod backoff;
 mod clock;
@@ -57,10 +215,10 @@ mod retry;
 
 pub use crate::clock::{Clock, SystemClock};
 pub use crate::error::Error;
-pub use crate::retry::{Notify, Operation};
+pub use crate::retry::{retry, retry_notify, Notify};
 
 #[cfg(feature = "futures")]
-pub use crate::retry::r#async::future;
+pub use crate::retry::r#async::{future, Retry};
 
 #[cfg(feature = "async-std")]
 pub use crate::retry::r#async::async_std;

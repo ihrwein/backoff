@@ -1,9 +1,10 @@
 extern crate tokio_1 as tokio;
 
+use backoff::tokio::retry;
 use backoff::ExponentialBackoff;
 
 async fn fetch_url(url: &str) -> Result<String, reqwest::Error> {
-    backoff::tokio::retry(ExponentialBackoff::default(), || async {
+    retry(ExponentialBackoff::default(), || async {
         println!("Fetching {}", url);
         Ok(reqwest::get(url).await?.text().await?)
     })

@@ -1,11 +1,9 @@
-use std::time::Duration;
 use instant::Instant;
+use std::time::Duration;
 
-use rand;
-
-use crate::default;
 use crate::backoff::Backoff;
 use crate::clock::Clock;
+use crate::default;
 
 #[derive(Debug)]
 pub struct ExponentialBackoff<C> {
@@ -34,7 +32,8 @@ pub struct ExponentialBackoff<C> {
 }
 
 impl<C> Default for ExponentialBackoff<C>
-    where C: Clock + Default
+where
+    C: Clock + Default,
 {
     fn default() -> ExponentialBackoff<C> {
         let mut eb = ExponentialBackoff {
@@ -58,10 +57,11 @@ impl<C: Clock> ExponentialBackoff<C> {
         self.clock.now().duration_since(self.start_time)
     }
 
-    fn get_random_value_from_interval(randomization_factor: f64,
-                                      random: f64,
-                                      current_interval: Duration)
-                                      -> Duration {
+    fn get_random_value_from_interval(
+        randomization_factor: f64,
+        random: f64,
+        current_interval: Duration,
+    ) -> Duration {
         let current_interval_nanos = duration_to_nanos(current_interval);
 
         let delta = randomization_factor * current_interval_nanos;
@@ -99,7 +99,8 @@ fn nanos_to_duration(nanos: f64) -> Duration {
 }
 
 impl<C> Backoff for ExponentialBackoff<C>
-    where C: Clock
+where
+    C: Clock,
 {
     fn reset(&mut self) {
         self.current_interval = self.initial_interval;
@@ -111,17 +112,17 @@ impl<C> Backoff for ExponentialBackoff<C>
             Some(v) if self.get_elapsed_time() > v => None,
             _ => {
                 let random = rand::random::<f64>();
-                let randomized_interval =
-                    Self::get_random_value_from_interval(self.randomization_factor,
-                                                         random,
-                                                         self.current_interval);
+                let randomized_interval = Self::get_random_value_from_interval(
+                    self.randomization_factor,
+                    random,
+                    self.current_interval,
+                );
                 self.current_interval = self.increment_current_interval();
                 Some(randomized_interval)
             }
         }
     }
 }
-
 
 #[cfg(test)]
 use crate::clock::SystemClock;

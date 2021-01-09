@@ -1,9 +1,9 @@
-use backoff::{Error, ExponentialBackoff, Operation};
+use backoff::{retry, Error, ExponentialBackoff};
 
 use std::io::Read;
 
 fn fetch_url(url: &str) -> Result<String, Error<reqwest::Error>> {
-    let mut op = || {
+    let op = || {
         println!("Fetching {}", url);
         let mut resp = reqwest::blocking::get(url)?;
 
@@ -13,7 +13,7 @@ fn fetch_url(url: &str) -> Result<String, Error<reqwest::Error>> {
     };
 
     let mut backoff = ExponentialBackoff::default();
-    op.retry(&mut backoff)
+    retry(&mut backoff, op)
 }
 
 fn main() {
