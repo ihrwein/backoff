@@ -27,8 +27,8 @@ fn fetch_url(url: &str) -> Result<String, Error<io::Error>> {
         Ok(content)
     };
 
-    let mut backoff = ExponentialBackoff::default();
-    backoff::retry(&mut backoff, op)
+    let backoff = ExponentialBackoff::default();
+    backoff::retry(backoff, op)
 }
 
 fn main() {

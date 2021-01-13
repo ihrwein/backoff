@@ -87,8 +87,8 @@
 //!         Ok(content)
 //!     };
 //!
-//!     let mut backoff = ExponentialBackoff::default();
-//!     backoff::retry(&mut backoff, op)
+//!     let backoff = ExponentialBackoff::default();
+//!     backoff::retry(backoff, op)
 //! }
 //!
 //! fn main() {
@@ -121,8 +121,8 @@
 //!         Ok(content)
 //!     };
 //!
-//!     let mut backoff = ExponentialBackoff::default();
-//!     retry(&mut backoff, op)
+//!     let backoff = ExponentialBackoff::default();
+//!     retry(backoff, op)
 //! }
 //!
 //! fn main() {

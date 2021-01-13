@@ -60,44 +60,27 @@ async fn fetch_url(url: &str) -> Result<String, reqwest::Error> {
 
 #### Removal of Operation trait
 
-The `Operation` trait has been removed, please use normal closures implementing `FnMut` instead. The `retry` and `retry_notify` methods were converted to free functions, available in the crate's root:  
+https://github.com/ihrwein/backoff/pull/28
 
-```diff
--let mut op = || {
-+let op = || {
-     println!("Fetching {}", url);
-     let mut resp = reqwest::get(url)?;
-     ...
- };
- 
- let mut backoff = ExponentialBackoff::default();
--op.retry(&mut backoff)
-+retry(&mut backoff, op)
-```
+The `Operation` trait has been removed, please use normal closures implementing `FnMut` instead. The `retry` and `retry_notify` methods were converted to free functions, available in the crate's root.
+
+[Example](examples/retry.rs).
 
 #### Removal of FutureOperation trait
 
-The `FutureOperation` trait has been removed. The `retry` and `retry_notify` methods were converted to free functions, available in the crate's root:
+https://github.com/ihrwein/backoff/pull/28
 
-```diff
+The `FutureOperation` trait has been removed. The `retry` and `retry_notify` methods were converted to free functions, available in the crate's root.
 
-+extern crate tokio_1 as tokio;
-+
-+use backoff::ExponentialBackoff;
- 
- async fn fetch_url(url: &str) -> Result<String, reqwest::Error> {
--    (|| async {
-+    backoff::tokio::retry(ExponentialBackoff::default(), || async {
-         Ok(reqwest::get(url).await?.text().await?)
-     })
--    .retry(ExponentialBackoff::default())
-     .await
- }
-```
+[Example](examples/async.rs).
 
 #### Changes in feature flags
 
 * `stdweb` flag was removed, as the project is abandoned.
+
+#### `retry`, `retry_notify` taking ownership of Backoff instances (previously &mut)
+
+[Example](examples/retry.rs).
 
 ## License
 
