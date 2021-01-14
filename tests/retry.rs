@@ -23,8 +23,8 @@ fn retry() {
             )))
         };
 
-        let mut backoff = ExponentialBackoff::default();
-        backoff::retry(&mut backoff, f).ok().unwrap();
+        let backoff = ExponentialBackoff::default();
+        backoff::retry(backoff, f).ok().unwrap();
     }
 
     assert_eq!(i, success_on);
@@ -39,8 +39,8 @@ fn permanent_error_immediately_returned() {
         )))
     };
 
-    let mut backoff = ExponentialBackoff::default();
-    match backoff::retry(&mut backoff, f).err().unwrap() {
+    let backoff = ExponentialBackoff::default();
+    match backoff::retry(backoff, f).err().unwrap() {
         Error::Permanent(_) => (),
         other => panic!("{}", other),
     }

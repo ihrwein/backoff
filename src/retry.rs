@@ -20,16 +20,21 @@ use crate::error::Error;
 ///     Err(Error::Permanent("error"))
 /// };
 ///
-/// let mut backoff = ExponentialBackoff::default();
-/// let _ = retry(&mut backoff, f).err().unwrap();
+/// let backoff = ExponentialBackoff::default();
+/// let _ = retry(backoff, f).err().unwrap();
 /// ```
-pub fn retry<F, B, T, E>(backoff: &mut B, op: F) -> Result<T, Error<E>>
+pub fn retry<F, B, T, E>(backoff: B, op: F) -> Result<T, Error<E>>
 where
     F: FnMut() -> Result<T, Error<E>>,
     B: Backoff,
 {
-    let nop = |_, _| ();
-    retry_notify(backoff, op, nop)
+    let mut retry = Retry {
+        backoff,
+        notify: NoopNotify,
+        sleep: ThreadSleep,
+    };
+
+    retry.retry_notify(op)
 }
 
 /// Retries this operation according to the backoff policy.
@@ -48,35 +53,72 @@ where
 ///     Err(Error::Transient("error"))
 /// };
 ///
-/// let mut backoff = Stop{};
-/// let _ = retry_notify(&mut backoff, f, notify).err().unwrap();
+/// let backoff = Stop{};
+/// let _ = retry_notify(backoff, f, notify).err().unwrap();
 /// ```
-pub fn retry_notify<F, B, N, T, E>(backoff: &mut B, mut op: F, mut notify: N) -> Result<T, Error<E>>
+pub fn retry_notify<F, B, N, T, E>(backoff: B, op: F, notify: N) -> Result<T, Error<E>>
 where
     F: FnMut() -> Result<T, Error<E>>,
     B: Backoff,
     N: Notify<E>,
 {
-    backoff.reset();
+    let mut retry = Retry {
+        backoff,
+        notify,
+        sleep: ThreadSleep,
+    };
 
-    loop {
-        let err = match op() {
-            Ok(v) => return Ok(v),
-            Err(err) => err,
-        };
+    retry.retry_notify(op)
+}
 
-        let err = match err {
-            Error::Permanent(err) => return Err(Error::Permanent(err)),
-            Error::Transient(err) => err,
-        };
+struct Retry<B, N, S> {
+    backoff: B,
+    notify: N,
+    sleep: S,
+}
 
-        let next = match backoff.next_backoff() {
-            Some(next) => next,
-            None => return Err(Error::Transient(err)),
-        };
+impl<B, N, S> Retry<B, N, S> {
+    pub fn retry_notify<F, T, E>(&mut self, mut op: F) -> Result<T, Error<E>>
+    where
+        F: FnMut() -> Result<T, Error<E>>,
+        B: Backoff,
+        N: Notify<E>,
+        S: Sleep,
+    {
+        self.backoff.reset();
 
-        notify.notify(err, next);
-        thread::sleep(next);
+        loop {
+            let err = match op() {
+                Ok(v) => return Ok(v),
+                Err(err) => err,
+            };
+
+            let err = match err {
+                Error::Permanent(err) => return Err(Error::Permanent(err)),
+                Error::Transient(err) => err,
+            };
+
+            let next = match self.backoff.next_backoff() {
+                Some(next) => next,
+                None => return Err(Error::Transient(err)),
+            };
+
+            self.notify.notify(err, next);
+
+            self.sleep.sleep(next);
+        }
+    }
+}
+
+trait Sleep {
+    fn sleep(&mut self, dur: Duration);
+}
+
+struct ThreadSleep;
+
+impl Sleep for ThreadSleep {
+    fn sleep(&mut self, dur: Duration) {
+        thread::sleep(dur);
     }
 }
 
