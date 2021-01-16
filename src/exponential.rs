@@ -124,6 +124,16 @@ where
     }
 }
 
+impl<C> Clone for ExponentialBackoff<C>
+where
+    C: Clone,
+{
+    fn clone(&self) -> Self {
+        let clock = self.clock.clone();
+        ExponentialBackoff { clock, ..*self }
+    }
+}
+
 #[cfg(test)]
 use crate::clock::SystemClock;
 
