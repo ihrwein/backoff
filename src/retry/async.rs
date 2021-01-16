@@ -47,15 +47,16 @@ pub mod future {
     /// # }
     /// # fn main() { futures_executor::block_on(go()); }
     /// ```
-    pub fn retry<S, I, E, Fn, B>(
+    pub fn retry<S, I, E, Fn, Fut, B>(
         sleeper: S,
         backoff: B,
         operation: Fn,
-    ) -> Retry<S, B, NoopNotify, Fn, Fn::Fut>
+    ) -> Retry<S, B, NoopNotify, Fn, Fut>
     where
         S: Sleeper,
         B: Backoff,
-        Fn: FutureOperation<I, E>,
+        Fn: FnMut() -> Fut,
+        Fut: Future<Output = Result<I, Error<E>>>,
     {
         retry_notify(sleeper, backoff, operation, NoopNotify)
     }
@@ -104,20 +105,21 @@ pub mod future {
     /// # }
     /// # fn main() { futures_executor::block_on(go()); }
     /// ```
-    pub fn retry_notify<S, I, E, Fn, B, N>(
+    pub fn retry_notify<S, I, E, Fn, Fut, B, N>(
         sleeper: S,
         mut backoff: B,
         mut operation: Fn,
         notify: N,
-    ) -> Retry<S, B, N, Fn, Fn::Fut>
+    ) -> Retry<S, B, N, Fn, Fut>
     where
         S: Sleeper,
         B: Backoff,
-        Fn: FutureOperation<I, E>,
+        Fn: FnMut() -> Fut,
+        Fut: Future<Output = Result<I, Error<E>>>,
         N: Notify<E>,
     {
         backoff.reset();
-        let fut = operation.call_op();
+        let fut = operation();
         Retry {
             sleeper,
             backoff,
@@ -127,32 +129,8 @@ pub mod future {
             notify,
         }
     }
-
-    /// [`FutureOperation`] is a [`Future`] operation that can be retried if it fails with the
-    /// provided [`Backoff`].
-    ///
-    /// Note, that this should not be a [`Future`] itself, but rather something producing a
-    /// [`Future`] (a closure, for example).
-    pub trait FutureOperation<I, E> {
-        /// Type of [`Future`] that this [`FutureOperation`] produces.
-        type Fut: Future<Output = Result<I, Error<E>>>;
-
-        /// Calls this [`FutureOperation`] returning a [`Future`] to be executed.
-        fn call_op(&mut self) -> Self::Fut;
-    }
-
-    impl<I, E, Fn, Fut> FutureOperation<I, E> for Fn
-    where
-        Fn: FnMut() -> Fut,
-        Fut: Future<Output = Result<I, Error<E>>>,
-    {
-        type Fut = Fut;
-
-        fn call_op(&mut self) -> Self::Fut {
-            self()
-        }
-    }
 }
+
 use future::Sleeper;
 
 /// Retry implementation.
@@ -235,7 +213,6 @@ macro_rules! gen_rt_module {
         #[cfg(feature = $feat)]
         pub mod $rt {
             use super::*;
-            use future::FutureOperation;
 
             doc_comment! {
                 concat!("Retries given `operation` according to the [`Backoff`] policy.
@@ -260,13 +237,14 @@ let err = backoff::",stringify!($rt),r#"::retry(ExponentialBackoff::default(), f
 assert_eq!(err, "error");
 # }
 ```"#),
-                pub fn retry<I, E, Fn, B>(
+                pub fn retry<I, E, F, Fut, B>(
                     backoff: B,
-                    operation: Fn,
-                ) -> Retry<impl Sleeper, B, NoopNotify, Fn, Fn::Fut>
+                    operation: F,
+                ) -> Retry<impl Sleeper, B, NoopNotify, F, Fut>
                 where
                     B: Backoff,
-                    Fn: FutureOperation<I, E>,
+                    F: FnMut() -> Fut,
+                    Fut: Future<Output = Result<I, Error<E>>>,
                 {
                     future::retry($Sleeper, backoff, operation)
                 }
@@ -309,14 +287,15 @@ backoff::",stringify!($rt),r#"::retry_notify(Stop {}, f, |e, dur| println!("Erro
     .unwrap();
 # }
 ```"#),
-                pub fn retry_notify<I, E, Fn, B, N>(
+                pub fn retry_notify<I, E, Fn, Fut, B, N>(
                     backoff: B,
                     operation: Fn,
                     notify: N,
-                ) -> Retry<impl Sleeper, B, N, Fn, Fn::Fut>
+                ) -> Retry<impl Sleeper, B, N, Fn, Fut>
                 where
                     B: Backoff,
-                    Fn: FutureOperation<I, E>,
+                    Fn: FnMut() -> Fut,
+                    Fut: Future<Output = Result<I, Error<E>>>,
                     N: Notify<E>,
                 {
                     future::retry_notify($Sleeper, backoff, operation, notify)
