@@ -50,4 +50,5 @@ name = "permanent_error"
 name = "retry"
 
 [package.metadata.docs.rs]
-features = ["tokio", "async-std"]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
