@@ -180,7 +180,7 @@
 //!
 //! `examples/async.rs`:
 //!
-//! ```rust,no_run
+//! ```rust,no_run,ignore
 //!
 //! extern crate tokio_1 as tokio;
 //!
