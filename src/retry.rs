@@ -1,6 +1,3 @@
-#[cfg(feature = "futures")]
-pub mod r#async;
-
 use std::thread;
 use std::time::Duration;
 
