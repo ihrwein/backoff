@@ -43,7 +43,7 @@ Futures are supported by the `futures` module:
 
 ```rust
 use backoff::ExponentialBackoff;
-use backoff::tokio::retry;
+use backoff::future::retry;
 
 async fn fetch_url(url: &str) -> Result<String, reqwest::Error> {
     retry(ExponentialBackoff::default(), || async {
