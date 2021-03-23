@@ -231,3 +231,6 @@ pub use crate::retry::{retry, retry_notify, Notify};
 /// `exponential::ExponentialBackoff` as it is generic over any [Clocks](trait.Clock.html)
 /// and in the real world mostly system's clock is used.
 pub type ExponentialBackoff = exponential::ExponentialBackoff<SystemClock>;
+
+/// Builder for exponential backoff policy with system's clock.
+pub type ExponentialBackoffBuilder = exponential::ExponentialBackoffBuilder<SystemClock>;
