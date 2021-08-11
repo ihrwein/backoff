@@ -55,6 +55,24 @@ fn max_elapsed_time() {
     // than the max elapsed time.
     exp.start_time = Instant::now() - Duration::new(1000, 0);
     assert!(exp.next_backoff().is_none());
+
+    // https://github.com/ihrwein/backoff/issues/42
+    // This sets up an ExponentialBackoff that has been retrying for 900ms,
+    // will next try for >= 500ms, which would put it after the 1000ms
+    // max_elapsed_time.
+    let clock = SystemClock::default();
+    let mut exp = ExponentialBackoff {
+        max_elapsed_time: Some(Duration::from_secs(1)),
+        current_interval: Duration::from_millis(500),
+        start_time: clock.now() - Duration::from_millis(900),
+        clock,
+        ..ExponentialBackoff::default()
+    };
+    assert_eq!(
+        None,
+        exp.next_backoff(),
+        "Should not provide a backoff interval if it would be beyond max_elapsed_time"
+    );
 }
 
 #[test]

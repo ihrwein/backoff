@@ -108,8 +108,10 @@ where
     }
 
     fn next_backoff(&mut self) -> Option<Duration> {
+        let elapsed_time = self.get_elapsed_time();
+
         match self.max_elapsed_time {
-            Some(v) if self.get_elapsed_time() > v => None,
+            Some(v) if elapsed_time > v => None,
             _ => {
                 let random = rand::random::<f64>();
                 let randomized_interval = Self::get_random_value_from_interval(
@@ -118,7 +120,16 @@ where
                     self.current_interval,
                 );
                 self.current_interval = self.increment_current_interval();
-                Some(randomized_interval)
+
+                if let Some(max_elapsed_time) = self.max_elapsed_time {
+                    if elapsed_time + randomized_interval <= max_elapsed_time {
+                        Some(randomized_interval)
+                    } else {
+                        None
+                    }
+                } else {
+                    Some(randomized_interval)
+                }
             }
         }
     }
