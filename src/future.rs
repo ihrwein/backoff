@@ -6,7 +6,7 @@ use std::{
 };
 
 use futures_core::ready;
-use pin_project::pin_project;
+use pin_project_lite::pin_project;
 
 use crate::{backoff::Backoff, error::Error};
 
@@ -105,28 +105,29 @@ where
     Retry::new(rt_sleeper(), backoff, notify, operation)
 }
 
-/// Retry implementation.
-#[pin_project]
-pub struct Retry<S: Sleeper, B, N, Fn, Fut> {
-    /// The [`Sleeper`] that we generate the `delay` futures from.
-    sleeper: S,
+pin_project! {
+    /// Retry implementation.
+    pub struct Retry<S: Sleeper, B, N, Fn, Fut> {
+        // The [`Sleeper`] that we generate the `delay` futures from.
+        sleeper: S,
 
-    /// [`Backoff`] implementation to count next [`Retry::delay`] with.
-    backoff: B,
+        // [`Backoff`] implementation to count next [`Retry::delay`] with.
+        backoff: B,
 
-    /// [`Future`] which delays execution before next [`Retry::operation`] invocation.
-    #[pin]
-    delay: OptionPinned<S::Sleep>,
+        // [`Future`] which delays execution before next [`Retry::operation`] invocation.
+        #[pin]
+        delay: OptionPinned<S::Sleep>,
 
-    /// Operation to be retried. It must return [`Future`].
-    operation: Fn,
+        // Operation to be retried. It must return [`Future`].
+        operation: Fn,
 
-    /// [`Future`] being resolved once [`Retry::operation`] is completed.
-    #[pin]
-    fut: Fut,
+        // [`Future`] being resolved once [`Retry::operation`] is completed.
+        #[pin]
+        fut: Fut,
 
-    /// [`Notify`] implementation to track [`Retry`] ticks.
-    notify: N,
+        // [`Notify`] implementation to track [`Retry`] ticks.
+        notify: N,
+    }
 }
 
 impl<S, B, N, Fn, Fut, I, E> Retry<S, B, N, Fn, Fut>
@@ -148,10 +149,15 @@ where
     }
 }
 
-#[pin_project(project = OptionProj)]
-enum OptionPinned<T> {
-    Some(#[pin] T),
-    None,
+pin_project! {
+    #[project = OptionProj]
+    enum OptionPinned<T> {
+        Some {
+            #[pin]
+            inner: T,
+        },
+        None,
+    }
 }
 
 impl<S, B, N, Fn, Fut, I, E> Future for Retry<S, B, N, Fn, Fut>
@@ -168,7 +174,7 @@ where
         let mut this = self.project();
 
         loop {
-            if let OptionProj::Some(delay) = this.delay.as_mut().project() {
+            if let OptionProj::Some { inner: delay } = this.delay.as_mut().project() {
                 ready!(delay.poll(cx));
                 this.delay.set(OptionPinned::None);
             }
@@ -180,8 +186,9 @@ where
                     match duration.or_else(|| this.backoff.next_backoff()) {
                         Some(duration) => {
                             this.notify.notify(e, duration);
-                            this.delay
-                                .set(OptionPinned::Some(this.sleeper.sleep(duration)));
+                            this.delay.set(OptionPinned::Some {
+                                inner: this.sleeper.sleep(duration),
+                            });
                             this.fut.set((this.operation)());
                         }
                         None => return Poll::Ready(Err(e)),
