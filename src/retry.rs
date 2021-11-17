@@ -47,7 +47,7 @@ where
 /// let notify = |err, dur| { println!("Error happened at {:?}: {}", dur, err); };
 /// let f = || -> Result<(), Error<&str>> {
 ///     // Business logic...
-///     Err(Error::Transient("error"))
+///     Err(Error::Transient("error", None))
 /// };
 ///
 /// let backoff = Stop{};
@@ -90,14 +90,14 @@ impl<B, N, S> Retry<B, N, S> {
                 Err(err) => err,
             };
 
-            let err = match err {
+            let (err, next) = match err {
                 Error::Permanent(err) => return Err(Error::Permanent(err)),
-                Error::Transient(err) => err,
-            };
-
-            let next = match self.backoff.next_backoff() {
-                Some(next) => next,
-                None => return Err(Error::Transient(err)),
+                Error::Transient(err, duration) => {
+                    match duration.or_else(|| self.backoff.next_backoff()) {
+                        Some(next) => (err, next),
+                        None => return Err(Error::Transient(err, None)),
+                    }
+                }
             };
 
             self.notify.notify(err, next);
