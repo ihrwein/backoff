@@ -17,10 +17,10 @@ fn retry() {
                 return Ok(());
             }
 
-            Err(Error::Transient(
-                io::Error::new(io::ErrorKind::Other, "err"),
-                None,
-            ))
+            Err(Error::Transient {
+                err: io::Error::new(io::ErrorKind::Other, "err"),
+                retry_after: None,
+            })
         };
 
         let backoff = ExponentialBackoff::default();

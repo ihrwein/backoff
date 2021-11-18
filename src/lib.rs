@@ -104,8 +104,11 @@
 //!
 //! ## Transient errors
 //!
-//! Transient errors can be constructed by wrapping your error value into `Error::Transient`.
+//! Transient errors can be constructed by wrapping your error value into `Error::transient`.
 //! By using the ? operator or the `try!` macro, you always get transient errors.
+//!
+//! You can also construct transient errors that are retried after a given
+//! interval with `Error::retry_after()` - useful for 429 errors.
 //!
 //! `examples/retry.rs`:
 //!

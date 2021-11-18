@@ -12,10 +12,39 @@ pub enum Error<E> {
     /// Permanent means that it's impossible to execute the operation
     /// successfully. This error is immediately returned from `retry()`.
     Permanent(E),
-    /// Transient means that the error is temporary. If the second argument is `None`
+
+    /// Transient means that the error is temporary. If the `retry_after` is `None`
     /// the operation should be retried according to the backoff policy, else after
     /// the specified duration. Useful for handling ratelimits like a HTTP 429 response.
-    Transient(E, Option<Duration>),
+    Transient {
+        err: E,
+        retry_after: Option<Duration>,
+    },
+}
+
+impl<E> Error<E> {
+    // Creates an permanent error.
+    pub fn permanent(err: E) -> Self {
+        Error::Permanent(err)
+    }
+
+    // Creates an transient error which is retried according to the backoff
+    // policy.
+    pub fn transient(err: E) -> Self {
+        Error::Transient {
+            err,
+            retry_after: None,
+        }
+    }
+
+    /// Creates a transient error which is retried after the specified duration.
+    /// Useful for handling ratelimits like a HTTP 429 response.
+    pub fn retry_after(err: E, duration: Duration) -> Self {
+        Error::Transient {
+            err,
+            retry_after: Some(duration),
+        }
+    }
 }
 
 impl<E> fmt::Display for Error<E>
@@ -24,7 +53,11 @@ where
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match *self {
-            Error::Permanent(ref err) | Error::Transient(ref err, _) => err.fmt(f),
+            Error::Permanent(ref err)
+            | Error::Transient {
+                ref err,
+                retry_after: _,
+            } => err.fmt(f),
         }
     }
 }
@@ -36,7 +69,10 @@ where
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         let (name, err) = match *self {
             Error::Permanent(ref err) => ("Permanent", err as &dyn fmt::Debug),
-            Error::Transient(ref err, _) => ("Transient", err as &dyn fmt::Debug),
+            Error::Transient {
+                ref err,
+                retry_after: _,
+            } => ("Transient", err as &dyn fmt::Debug),
         };
         f.debug_tuple(name).field(err).finish()
     }
@@ -49,13 +85,17 @@ where
     fn description(&self) -> &str {
         match *self {
             Error::Permanent(_) => "permanent error",
-            Error::Transient(..) => "transient error",
+            Error::Transient { .. } => "transient error",
         }
     }
 
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match *self {
-            Error::Permanent(ref err) | Error::Transient(ref err, _) => err.source(),
+            Error::Permanent(ref err)
+            | Error::Transient {
+                ref err,
+                retry_after: _,
+            } => err.source(),
         }
     }
 
@@ -69,6 +109,9 @@ where
 /// the question mark operator (?) and the `try!` macro to work.
 impl<E> From<E> for Error<E> {
     fn from(err: E) -> Error<E> {
-        Error::Transient(err, None)
+        Error::Transient {
+            err,
+            retry_after: None,
+        }
     }
 }
