@@ -17,9 +17,9 @@ Compile with feature `wasm-bindgen` or `stdweb` for use in WASM environments. `r
 
 `backoff` is small crate which allows you to retry operations according to backoff policies. It provides:
 
-* Error type to wrap errors as either transient of permanent,
-* different backoff algorithms, including exponential,
-* supporting both sync and async code.
+- Error type to wrap errors as either transient of permanent,
+- different backoff algorithms, including exponential,
+- supporting both sync and async code.
 
 ## Sync example
 
@@ -29,7 +29,7 @@ Just wrap your fallible operation into a closure, and pass it into `retry`:
 use backoff::{retry, ExponentialBackoff, Error};
 
 let op = || {
-    reqwest::blocking::get("http://example.com").map_err(Error::Transient)
+    reqwest::blocking::get("http://example.com").map_err(Error::transient)
 };
 
 let _ = retry(&mut ExponentialBackoff::default(), op);
@@ -56,6 +56,14 @@ async fn fetch_url(url: &str) -> Result<String, reqwest::Error> {
 
 ## Breaking changes
 
+### 0.3.x -> 0.4.x
+
+#### Adding new field to Error::Transient
+
+`Transient` errors got a second field. Useful for handling ratelimits like a HTTP 429 response.
+
+To fix broken code, just replace calls of `Error::Transient()` with `Error::transient()`.
+
 ### 0.2.x -> 0.3.x
 
 #### Removal of Operation trait
@@ -76,7 +84,7 @@ The `FutureOperation` trait has been removed. The `retry` and `retry_notify` met
 
 #### Changes in feature flags
 
-* `stdweb` flag was removed, as the project is abandoned.
+- `stdweb` flag was removed, as the project is abandoned.
 
 #### `retry`, `retry_notify` taking ownership of Backoff instances (previously &mut)
 
@@ -85,9 +93,10 @@ The `FutureOperation` trait has been removed. The `retry` and `retry_notify` met
 ## License
 
 Licensed under either of
- * Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
- * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
-at your option.
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+  at your option.
 
 ### Contribution
 
