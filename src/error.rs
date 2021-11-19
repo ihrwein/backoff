@@ -139,3 +139,34 @@ where
         }
     }
 }
+
+#[test]
+fn create_permanent_error() {
+    let e = Error::permanent("err");
+    assert_eq!(e, Error::Permanent("err"));
+}
+
+#[test]
+fn create_transient_error() {
+    let e = Error::transient("err");
+    assert_eq!(
+        e,
+        Error::Transient {
+            err: "err",
+            retry_after: None
+        }
+    );
+}
+
+#[test]
+fn create_transient_error_with_retry_after() {
+    let retry_after = Duration::from_secs(42);
+    let e = Error::retry_after("err", retry_after);
+    assert_eq!(
+        e,
+        Error::Transient {
+            err: "err",
+            retry_after: Some(retry_after),
+        }
+    );
+}
