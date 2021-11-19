@@ -115,3 +115,27 @@ impl<E> From<E> for Error<E> {
         }
     }
 }
+
+impl<E> PartialEq for Error<E>
+where
+    E: PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Error::Permanent(ref self_err), Error::Permanent(ref other_err)) => {
+                self_err == other_err
+            }
+            (
+                Error::Transient {
+                    err: self_err,
+                    retry_after: self_retry_after,
+                },
+                Error::Transient {
+                    err: other_err,
+                    retry_after: other_retry_after,
+                },
+            ) => self_err == other_err && self_retry_after == other_retry_after,
+            _ => false,
+        }
+    }
+}
