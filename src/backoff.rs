@@ -10,6 +10,18 @@ pub trait Backoff {
     fn next_backoff(&mut self) -> Option<Duration>;
 }
 
+impl<B: Backoff + ?Sized> Backoff for Box<B> {
+    fn next_backoff(&mut self) -> Option<Duration> {
+        let this: &mut B = self;
+        this.next_backoff()
+    }
+
+    fn reset(&mut self) {
+        let this: &mut B = self;
+        this.reset()
+    }
+}
+
 /// Immediately retry the operation.
 #[derive(Debug)]
 pub struct Zero {}
