@@ -114,7 +114,8 @@ where
     }
 }
 
-#[cfg(test)]
+// Tokio clock is required to be able to freeze time during marble tests
+#[cfg(all(test, feature = "tokio"))]
 mod tests {
     use super::StreamBackoff;
     use crate::{backoff::Backoff, future::TokioSleeper};
