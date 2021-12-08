@@ -3,10 +3,7 @@ use std::{pin::Pin, task::Poll};
 use futures_core::{Future, Stream, TryStream};
 use pin_project_lite::pin_project;
 
-use crate::{
-    backoff::Backoff,
-    future::{rt_sleeper, Sleeper},
-};
+use crate::{backoff::Backoff, future::Sleeper};
 
 /// Applies a [`Backoff`] policy to a [`Stream`]
 ///
@@ -19,7 +16,7 @@ pub fn backoff<S: TryStream, B: Backoff>(
     stream: S,
     backoff: B,
 ) -> StreamBackoff<S, B, impl Sleeper> {
-    StreamBackoff::new(stream, backoff, rt_sleeper())
+    StreamBackoff::new(stream, backoff, crate::future::rt_sleeper())
 }
 
 pin_project! {
