@@ -75,7 +75,7 @@ where
 ///
 /// async fn f() -> Result<(), backoff::Error<&'static str>> {
 ///     // Business logic...
-///     Err(backoff::Error::Transient("error", None))
+///     Err(backoff::Error::transient("error"))
 /// }
 ///
 /// # async fn go() {
@@ -182,16 +182,16 @@ where
             match ready!(this.fut.as_mut().poll(cx)) {
                 Ok(v) => return Poll::Ready(Ok(v)),
                 Err(Error::Permanent(e)) => return Poll::Ready(Err(e)),
-                Err(Error::Transient(e, duration)) => {
-                    match duration.or_else(|| this.backoff.next_backoff()) {
+                Err(Error::Transient { err, retry_after }) => {
+                    match retry_after.or_else(|| this.backoff.next_backoff()) {
                         Some(duration) => {
-                            this.notify.notify(e, duration);
+                            this.notify.notify(err, duration);
                             this.delay.set(OptionPinned::Some {
                                 inner: this.sleeper.sleep(duration),
                             });
                             this.fut.set((this.operation)());
                         }
-                        None => return Poll::Ready(Err(e)),
+                        None => return Poll::Ready(Err(err)),
                     }
                 }
             }
