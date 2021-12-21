@@ -221,6 +221,9 @@ pub mod exponential;
 #[cfg(feature = "futures")]
 #[cfg_attr(docsrs, doc(cfg(feature = "futures")))]
 pub mod future;
+#[cfg(feature = "futures")]
+#[cfg_attr(docsrs, doc(cfg(feature = "futures")))]
+pub mod stream;
 
 mod retry;
 

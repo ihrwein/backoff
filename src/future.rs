@@ -203,19 +203,19 @@ where
 compile_error!("Feature \"tokio\" and \"async-std\" cannot be enabled at the same time");
 
 #[cfg(feature = "async-std")]
-fn rt_sleeper() -> impl Sleeper {
+pub(crate) fn rt_sleeper() -> impl Sleeper {
     AsyncStdSleeper
 }
 
 #[cfg(feature = "tokio")]
-fn rt_sleeper() -> impl Sleeper {
+pub(crate) fn rt_sleeper() -> impl Sleeper {
     TokioSleeper
 }
 
 #[cfg(feature = "tokio")]
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
 
-struct TokioSleeper;
+pub(crate) struct TokioSleeper;
 #[cfg(feature = "tokio")]
 #[cfg_attr(docsrs, doc(cfg(feature = "tokio")))]
 impl Sleeper for TokioSleeper {
