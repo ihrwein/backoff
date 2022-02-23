@@ -1,10 +1,10 @@
-use instant::Instant;
 use std::marker::PhantomData;
 use std::time::Duration;
 
 use crate::backoff::Backoff;
 use crate::clock::Clock;
 use crate::default;
+use crate::Instant;
 
 #[derive(Debug)]
 pub struct ExponentialBackoff<C> {

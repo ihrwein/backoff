@@ -1,7 +1,6 @@
 use std::error;
 use std::fmt;
-
-use instant::Duration;
+use std::time::Duration;
 
 /// Error is the error value in an operation's
 /// result.

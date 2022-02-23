@@ -13,6 +13,7 @@ jobs:
         feature:
           - async-std
           - futures
+          - instant
           - tokio
           - wasm-bindgen
     steps:
@@ -27,10 +28,10 @@ jobs:
           override: true
 
       - name: Run cargo check
-        run: cargo check --features=${{ matrix.feature }}
+        run: cargo check --no-default-features --features=${{ matrix.feature }}
 
       - name: Run cargo test
-        run: cargo test --features=${{ matrix.feature }}
+        run: cargo test --no-default-features --features=${{ matrix.feature }}
 
   lints:
     name: Lints

@@ -216,6 +216,7 @@ pub mod backoff;
 mod clock;
 pub mod default;
 mod error;
+mod instant;
 pub mod exponential;
 
 #[cfg(feature = "futures")]
@@ -226,6 +227,7 @@ mod retry;
 
 pub use crate::clock::{Clock, SystemClock};
 pub use crate::error::Error;
+pub use crate::instant::Instant;
 pub use crate::retry::{retry, retry_notify, Notify};
 
 /// Exponential backoff policy with system's clock.
