@@ -42,7 +42,7 @@ impl Backoff for Stop {
     }
 }
 
-/// Contant is a backoff policy which always returns
+/// Constant is a backoff policy which always returns
 /// a constant duration.
 #[derive(Debug)]
 pub struct Constant {
@@ -50,7 +50,7 @@ pub struct Constant {
 }
 
 impl Constant {
-    /// Creates a new Constant backoff with `interval` contant
+    /// Creates a new Constant backoff with `interval` constant
     /// backoff.
     pub fn new(interval: Duration) -> Constant {
         Constant { interval }
@@ -60,5 +60,40 @@ impl Constant {
 impl Backoff for Constant {
     fn next_backoff(&mut self) -> Option<Duration> {
         Some(self.interval)
+    }
+}
+
+/// Backoff policy with a fixed number of retries with a constant interval.
+#[derive(Debug)]
+pub struct FixedNumber {
+    interval: Duration,
+    max_attempts: usize,
+    current_attempt: usize,
+}
+
+impl FixedNumber {
+    /// Creates a new FixedNumber backoff with fixed number of retry attempts (`max_attempts`)
+    /// and constant duration between them (`interval`)
+    pub fn new(interval: Duration, max_attempts: usize) -> Self {
+        Self {
+            interval,
+            max_attempts,
+            current_attempt: 0,
+        }
+    }
+}
+
+impl Backoff for FixedNumber {
+    fn reset(&mut self) {
+        self.current_attempt = 0;
+    }
+
+    fn next_backoff(&mut self) -> Option<Duration> {
+        if self.current_attempt < self.max_attempts - 1 {
+            self.current_attempt += 1;
+            Some(self.interval)
+        } else {
+            None
+        }
     }
 }
