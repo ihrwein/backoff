@@ -22,6 +22,20 @@ impl<B: Backoff + ?Sized> Backoff for Box<B> {
     }
 }
 
+/// Option of a Backoff retries the operation with backoff if the Option is Some(backoff)
+/// and never retries the operation if the Option is None
+impl<B: Backoff> Backoff for Option<B> {
+    fn next_backoff(&mut self) -> Option<Duration> {
+        self.as_mut().and_then(|b| b.next_backoff())
+    }
+
+    fn reset(&mut self) {
+        if let Some(b) = self {
+            b.reset()
+        }
+    }
+}
+
 /// Immediately retry the operation.
 #[derive(Debug)]
 pub struct Zero {}
