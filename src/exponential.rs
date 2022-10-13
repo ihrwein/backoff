@@ -12,6 +12,8 @@ pub struct ExponentialBackoff<C> {
     pub current_interval: Duration,
     /// The initial retry interval.
     pub initial_interval: Duration,
+    /// The current attempt count.
+    pub attempt_count: usize,
     /// The randomization factor to use for creating a range around the retry interval.
     ///
     /// A randomization factor of 0.5 results in a random period ranging between 50% below and 50%
@@ -28,6 +30,9 @@ pub struct ExponentialBackoff<C> {
     /// The maximum elapsed time after instantiating [`ExponentialBackfff`](struct.ExponentialBackoff.html) or calling
     /// [`reset`](trait.Backoff.html#method.reset) after which [`next_backoff`](../trait.Backoff.html#method.reset) returns `None`.
     pub max_elapsed_time: Option<Duration>,
+    /// The maximum number of attempts after instantiating [`ExponentialBackfff`](struct.ExponentialBackoff.html) or calling
+    /// [`reset`](trait.Backoff.html#method.reset) after which [`next_backoff`](../trait.Backoff.html#method.reset) returns `None`.
+    pub max_attempts: Option<usize>,
     /// The clock used to get the current time.
     pub clock: C,
 }
@@ -44,8 +49,10 @@ where
             multiplier: default::MULTIPLIER,
             max_interval: Duration::from_millis(default::MAX_INTERVAL_MILLIS),
             max_elapsed_time: Some(Duration::from_millis(default::MAX_ELAPSED_TIME_MILLIS)),
+            max_attempts: None,
             clock: C::default(),
             start_time: Instant::now(),
+            attempt_count: 0,
         };
         eb.reset();
         eb
@@ -106,6 +113,7 @@ where
     fn reset(&mut self) {
         self.current_interval = self.initial_interval;
         self.start_time = self.clock.now();
+        self.attempt_count = 0
     }
 
     fn next_backoff(&mut self) -> Option<Duration> {
@@ -114,6 +122,12 @@ where
         match self.max_elapsed_time {
             Some(v) if elapsed_time > v => None,
             _ => {
+                if self.max_attempts == Some(self.attempt_count) {
+                    return None;
+                }
+
+                self.attempt_count += 1;
+
                 let random = rand::random::<f64>();
                 let randomized_interval = Self::get_random_value_from_interval(
                     self.randomization_factor,
@@ -156,6 +170,7 @@ pub struct ExponentialBackoffBuilder<C> {
     multiplier: f64,
     max_interval: Duration,
     max_elapsed_time: Option<Duration>,
+    max_attempt_count: Option<usize>,
     _clock: PhantomData<C>,
 }
 
@@ -168,6 +183,7 @@ impl<C> Default for ExponentialBackoffBuilder<C> {
             max_interval: Duration::from_millis(default::MAX_INTERVAL_MILLIS),
             max_elapsed_time: Some(Duration::from_millis(default::MAX_ELAPSED_TIME_MILLIS)),
             _clock: PhantomData,
+            max_attempt_count: None,
         }
     }
 }
@@ -208,6 +224,13 @@ where
         self
     }
 
+    /// The maximum number of attempts after instantiating [`ExponentialBackfff`](struct.ExponentialBackoff.html) or calling
+    /// [`reset`](trait.Backoff.html#method.reset) after which [`next_backoff`](../trait.Backoff.html#method.reset) returns `None`.
+    pub fn with_max_attempts(&mut self, max_attempt_count: usize) -> &mut Self {
+        self.max_attempt_count = Some(max_attempt_count);
+        self
+    }
+
     /// The maximum elapsed time after instantiating [`ExponentialBackfff`](struct.ExponentialBackoff.html) or calling
     /// [`reset`](trait.Backoff.html#method.reset) after which [`next_backoff`](../trait.Backoff.html#method.reset) returns `None`.
     pub fn with_max_elapsed_time(&mut self, max_elapsed_time: Option<Duration>) -> &mut Self {
@@ -225,6 +248,8 @@ where
             max_elapsed_time: self.max_elapsed_time,
             clock: C::default(),
             start_time: Instant::now(),
+            attempt_count: 0,
+            max_attempts: self.max_attempt_count,
         }
     }
 }
@@ -244,6 +269,25 @@ fn get_randomized_interval() {
     // 33% chance of being 3.
     assert_eq!(Duration::new(0, 3), f(0.5, 0.67, Duration::new(0, 2)));
     assert_eq!(Duration::new(0, 3), f(0.5, 0.99, Duration::new(0, 2)));
+}
+
+#[test]
+fn max_attempt_count() {
+    let mut backoff: ExponentialBackoff<SystemClock> = ExponentialBackoffBuilder::new()
+        .with_max_attempts(2)
+        .build();
+
+    assert!(backoff.next_backoff().is_some());
+    assert!(backoff.next_backoff().is_some());
+    assert!(backoff.next_backoff().is_none());
+    assert!(backoff.next_backoff().is_none());
+
+    backoff.reset();
+
+    assert!(backoff.next_backoff().is_some());
+    assert!(backoff.next_backoff().is_some());
+    assert!(backoff.next_backoff().is_none());
+    assert!(backoff.next_backoff().is_none());
 }
 
 #[test]
