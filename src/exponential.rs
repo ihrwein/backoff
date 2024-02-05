@@ -25,7 +25,7 @@ pub struct ExponentialBackoff<C> {
     /// The system time. It is calculated when an [`ExponentialBackoff`](struct.ExponentialBackoff.html) instance is
     /// created and is reset when [`retry`](../trait.Operation.html#method.retry) is called.
     pub start_time: Instant,
-    /// The maximum elapsed time after instantiating [`ExponentialBackfff`](struct.ExponentialBackoff.html) or calling
+    /// The maximum elapsed time after instantiating [`ExponentialBackoff`](struct.ExponentialBackoff.html) or calling
     /// [`reset`](trait.Backoff.html#method.reset) after which [`next_backoff`](../trait.Backoff.html#method.reset) returns `None`.
     pub max_elapsed_time: Option<Duration>,
     /// The clock used to get the current time.
@@ -208,7 +208,7 @@ where
         self
     }
 
-    /// The maximum elapsed time after instantiating [`ExponentialBackfff`](struct.ExponentialBackoff.html) or calling
+    /// The maximum elapsed time after instantiating [`ExponentialBackoff`](struct.ExponentialBackoff.html) or calling
     /// [`reset`](trait.Backoff.html#method.reset) after which [`next_backoff`](../trait.Backoff.html#method.reset) returns `None`.
     pub fn with_max_elapsed_time(&mut self, max_elapsed_time: Option<Duration>) -> &mut Self {
         self.max_elapsed_time = max_elapsed_time;
